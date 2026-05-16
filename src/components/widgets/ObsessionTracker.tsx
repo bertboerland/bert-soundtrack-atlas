@@ -1,14 +1,58 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Flame } from "lucide-react";
-import type { Obsession } from "@/lib/spotify/types";
+import type { Obsession, TrackAggregate } from "@/lib/spotify/types";
+
+interface Props {
+  obsessions: Obsession[];
+  /** Falls back to deriving synthetic obsessions when the dataset has none. */
+  topTracks?: TrackAggregate[];
+}
 
 /**
  * Vertical "spikes" — songs that took over a single week.
- * Each spike's height encodes how many times the track was played
- * inside its peak 7-day window.
+ *
+ * If the dataset has no precomputed obsessions (because the raw streaming
+ * history isn't present), we synthesize a plausible obsession week per
+ * top track using firstPlayed + a heuristic peak share of total plays.
  */
-export function ObsessionTracker({ obsessions }: { obsessions: Obsession[] }) {
-  if (!obsessions.length) {
+export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
+  const data = useMemo<Obsession[]>(() => {
+    if (obsessions.length > 0) return obsessions;
+    if (topTracks.length === 0) return [];
+
+    // Synthesize: per top track, estimate a "peak week" play count.
+    // Tighter active spans → bigger share concentrated in one week.
+    return topTracks
+      .slice(0, 80)
+      .map((t) => {
+        const yearsCount = Math.max(1, t.yearsActive.length);
+        // Fraction of total plays we assume happened in the peak week.
+        // Heavily-spread tracks: ~6%. Narrow obsessions (1 year): ~28%.
+        const share = Math.min(0.32, 0.06 + 0.22 / yearsCount);
+        const peakPlays = Math.max(3, Math.round(t.plays * share));
+        // Anchor the obsession week ~25% into the active span.
+        const first = new Date(t.firstPlayed).getTime();
+        const last = new Date(t.lastPlayed).getTime();
+        const peak = new Date(first + (last - first) * 0.22);
+        // Snap to Monday
+        const dow = (peak.getUTCDay() + 6) % 7;
+        const weekStart = new Date(peak.getTime() - dow * 86400000)
+          .toISOString()
+          .slice(0, 10);
+        return {
+          trackId: t.trackId,
+          name: t.name,
+          artist: t.artist,
+          weekStart,
+          plays: peakPlays,
+        };
+      })
+      .sort((a, b) => b.plays - a.plays)
+      .slice(0, 30);
+  }, [obsessions, topTracks]);
+
+  if (!data.length) {
     return (
       <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
         No obsessions detected — everything in moderation.
@@ -16,17 +60,14 @@ export function ObsessionTracker({ obsessions }: { obsessions: Obsession[] }) {
     );
   }
 
-  const top = obsessions.slice(0, 24);
+  const top = data.slice(0, 24);
   const maxPlays = Math.max(...top.map((o) => o.plays));
   const sorted = [...top].sort((a, b) => a.weekStart.localeCompare(b.weekStart));
 
   return (
-    <div className="p-6">
-      {/* Spike chart */}
+    <div className="p-4 sm:p-6">
       <div className="relative h-64 w-full overflow-hidden rounded-lg border border-white/5 bg-black/30">
-        {/* baseline */}
         <div className="absolute inset-x-0 bottom-8 h-px bg-white/10" />
-        {/* horizontal grid */}
         {[0.25, 0.5, 0.75].map((p) => (
           <div
             key={p}
@@ -49,12 +90,11 @@ export function ObsessionTracker({ obsessions }: { obsessions: Obsession[] }) {
                 className="group relative flex-1 cursor-pointer"
               >
                 <div className="absolute inset-x-0 bottom-0 h-full rounded-t-sm bg-gradient-to-t from-primary/80 via-primary/60 to-primary/20 shadow-[0_0_12px_rgba(29,185,84,0.4)] transition group-hover:from-primary group-hover:to-primary/40" />
-                {/* tooltip */}
                 <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-white/10 bg-black/90 px-3 py-2 text-xs shadow-xl group-hover:block">
                   <div className="font-medium text-foreground">{o.name}</div>
                   <div className="text-muted-foreground">{o.artist}</div>
                   <div className="mt-1 font-mono text-[10px] text-primary">
-                    {o.plays}× · week of {o.weekStart}
+                    ~{o.plays}× · week of {o.weekStart}
                   </div>
                 </div>
               </motion.div>
@@ -62,16 +102,14 @@ export function ObsessionTracker({ obsessions }: { obsessions: Obsession[] }) {
           })}
         </div>
 
-        {/* axis labels */}
         <div className="absolute inset-x-4 bottom-2 flex justify-between text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
           <span>{sorted[0]?.weekStart.slice(0, 7)}</span>
           <span>{sorted[sorted.length - 1]?.weekStart.slice(0, 7)}</span>
         </div>
       </div>
 
-      {/* Top 5 list */}
       <div className="mt-6 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-        {obsessions.slice(0, 6).map((o, i) => (
+        {data.slice(0, 6).map((o, i) => (
           <motion.div
             key={`${o.trackId}-${o.weekStart}-row`}
             initial={{ opacity: 0, x: -8 }}
@@ -92,12 +130,18 @@ export function ObsessionTracker({ obsessions }: { obsessions: Obsession[] }) {
               </div>
             </div>
             <div className="text-right">
-              <div className="font-mono text-sm text-primary">{o.plays}×</div>
+              <div className="font-mono text-sm text-primary">~{o.plays}×</div>
               <div className="text-[10px] text-muted-foreground">{o.weekStart}</div>
             </div>
           </motion.div>
         ))}
       </div>
+
+      {obsessions.length === 0 && (
+        <p className="mt-3 px-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
+          ◆ Estimated from top-track play distribution
+        </p>
+      )}
     </div>
   );
 }
