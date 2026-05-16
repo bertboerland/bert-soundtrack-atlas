@@ -282,8 +282,9 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
                   const svgRect = (
                     e.currentTarget.ownerSVGElement as SVGSVGElement
                   ).getBoundingClientRect();
+                  const [yy, mm, dd] = w.weekStart.split("-");
                   setHover({
-                    label: `week of ${w.weekStart}`,
+                    label: `week of ${dd}-${mm}-${yy}`,
                     minutes: Math.round(w.minutes),
                     x: e.clientX - svgRect.left,
                     y: e.clientY - svgRect.top,
