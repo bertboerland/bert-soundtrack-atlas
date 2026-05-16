@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
-import type { HeatmapCell } from "@/lib/spotify/types";
+import type { HeatmapCell, GenreYearPoint } from "@/lib/spotify/types";
+import { colorForGenre } from "@/lib/spotify/genreColors";
 
 interface Props {
   cells: HeatmapCell[];
+  genreEvolution?: GenreYearPoint[];
 }
 
 /**
