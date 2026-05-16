@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Flame } from "lucide-react";
 import type { Obsession, TrackAggregate } from "@/lib/spotify/types";
+import { usePreviewAudio } from "@/lib/spotify/usePreviewAudio";
 
 interface Props {
   obsessions: Obsession[];
