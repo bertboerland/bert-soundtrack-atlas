@@ -112,11 +112,29 @@ function Dashboard() {
           <ListeningHeatmap cells={data.heatmap} />
         </WidgetCard>
 
+        {/* Obsessions */}
+        <WidgetCard
+          title="Obsession Tracker"
+          subtitle="Tracks that took over a single week"
+          delay={0.18}
+        >
+          <ObsessionTracker obsessions={data.obsessions} />
+        </WidgetCard>
+
+        {/* Clients over time */}
+        <WidgetCard
+          title="Devices Through Time"
+          subtitle="How the listening surface shifted, month by month"
+          delay={0.2}
+        >
+          <ClientTimeline data={data.clientTimeline} />
+        </WidgetCard>
+
         {/* Insights */}
         <WidgetCard
           title="Insights Engine"
           subtitle="Patterns the data noticed before you did"
-          delay={0.2}
+          delay={0.22}
         >
           <InsightsEngine insights={data.insights} />
         </WidgetCard>
