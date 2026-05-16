@@ -190,7 +190,7 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
   const padY = 28;
   const padBottom = 40;
   const colW = weeks.length > 0
-    ? Math.max(2, (containerWidth - 20) / weeks.length - gap)
+    ? Math.max(1, containerWidth / weeks.length - gap)
     : 6;
   const width = containerWidth;
   const height = rowH + padY + padBottom;
