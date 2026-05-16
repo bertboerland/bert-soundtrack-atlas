@@ -6,9 +6,10 @@ import { buildMockDataset } from "./mockDataset";
  * Loads the processed dataset.
  *
  * Resolution order:
- *  1. /spotify26/data/processed.json (production: written by `npm run ingest`)
- *  2. /data/processed.json           (dev fallback)
- *  3. Generated mock dataset         (preview / when no data is present)
+ *  1. /spotify26/processed.json      (static host fallback for locked-down Apache dirs)
+ *  2. /spotify26/data/processed.json (production: written by `npm run ingest`)
+ *  3. /data/processed.json           (dev fallback)
+ *  4. Generated mock dataset         (preview / when no data is present)
  */
 export function useDataset() {
   const [data, setData] = useState<ProcessedDataset | null>(null);
@@ -17,6 +18,7 @@ export function useDataset() {
   useEffect(() => {
     let cancelled = false;
     const candidates = [
+      `${import.meta.env.BASE_URL}processed.json`,
       `${import.meta.env.BASE_URL}data/processed.json`,
       `/data/processed.json`,
     ];
