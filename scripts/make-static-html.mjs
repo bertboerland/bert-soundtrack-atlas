@@ -22,15 +22,17 @@ if (!existsSync(manifestPath)) {
 
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
 
-// Find our SPA entry (keyed as "src/client-spa.tsx" in the manifest).
-const entryKey = Object.keys(manifest).find(
-  (k) => k.endsWith("client-spa.tsx") && manifest[k].isEntry,
-);
+const entryKeys = Object.keys(manifest).filter((k) => manifest[k].isEntry);
+
+// In a STATIC_SPA build TanStack's single client entry is src/client-spa.tsx.
+const entryKey =
+  entryKeys.find((k) => k.endsWith("client-spa.tsx") || k.includes("client-spa")) ??
+  (entryKeys.length === 1 ? entryKeys[0] : undefined);
 if (!entryKey) {
   console.error(
-    "✗ client-spa entry not found in manifest. Did vite.config rollupOptions.input include it?",
+    "✗ client-spa entry not found in manifest. Did you run `npm run build:static`?",
   );
-  console.error("  Entries seen:", Object.keys(manifest).filter((k) => manifest[k].isEntry));
+  console.error("  Entries seen:", entryKeys);
   process.exit(1);
 }
 
