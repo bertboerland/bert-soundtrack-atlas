@@ -93,6 +93,37 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
 
   const coveragePct = totalDays ? Math.round((activeDays / totalDays) * 100) : 0;
 
+  // Map each year → dominant genre + color (from genreEvolution)
+  const yearGenre = useMemo(() => {
+    const m = new Map<number, { genre: string; color: string }>();
+    const byYear = new Map<number, Map<string, number>>();
+    for (const p of genreEvolution) {
+      if (!byYear.has(p.year)) byYear.set(p.year, new Map());
+      const g = byYear.get(p.year)!;
+      g.set(p.genre, (g.get(p.genre) ?? 0) + p.minutes);
+    }
+    for (const [yr, g] of byYear) {
+      const top = [...g.entries()].sort((a, b) => b[1] - a[1])[0];
+      const genre = top?.[0] ?? "Unknown";
+      m.set(yr, { genre, color: colorForGenre(genre) });
+    }
+    return m;
+  }, [genreEvolution]);
+
+  /** Convert a hex/hsl color + alpha into a usable rgba/hsla string. */
+  function withAlpha(color: string, alpha: number): string {
+    if (color.startsWith("#")) {
+      const r = parseInt(color.slice(1, 3), 16);
+      const g = parseInt(color.slice(3, 5), 16);
+      const b = parseInt(color.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    if (color.startsWith("hsl(")) {
+      return color.replace("hsl(", "hsla(").replace(")", ` / ${alpha})`);
+    }
+    return color;
+  }
+
   return (
     <div className="relative px-4 pb-6 pt-2">
       {/* Headline stats — the "I always listen" story */}
