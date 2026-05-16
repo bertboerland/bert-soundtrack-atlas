@@ -1,0 +1,5 @@
+# Drop your Spotify "Extended streaming history" JSON exports here.
+# They look like:  Streaming_History_Audio_2014-2017_0.json
+# Then run:  npm run ingest
+*.json
+!.gitkeep
