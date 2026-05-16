@@ -1,0 +1,14 @@
+services:
+  soundtrack-of-bert:
+    build: .
+    container_name: soundtrack-of-bert
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      # Mount your real Spotify exports here. To re-ingest after dropping new
+      # files, run: docker compose exec soundtrack-of-bert sh -c "cd /app && npm run ingest"
+      # (or rebuild the image).
+      - ./data:/app/data:ro
+    env_file:
+      - .env
