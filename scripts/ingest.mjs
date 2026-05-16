@@ -229,7 +229,7 @@ function buildInsights(meta, tracks, artists) {
   if (topArtist) {
     out.push({
       id: "top-artist",
-      headline: `${topArtist.artist} dominates your library.`,
+      headline: `${topArtist.artist} dominates Bert's library.`,
       body: `${Math.round(topArtist.msPlayed / 60000).toLocaleString()} minutes across ${topArtist.uniqueTracks} unique tracks and ${topArtist.yearsActive.length} years.`,
       metric: `${Math.round((topArtist.msPlayed / (meta.totalMinutes * 60000)) * 100)}%`,
       tone: "obsession",
@@ -239,7 +239,7 @@ function buildInsights(meta, tracks, artists) {
   if (longLasting) {
     out.push({
       id: "long-lasting",
-      headline: `${longLasting.artist} has stayed with you for ${longLasting.yearsActive.length} years.`,
+      headline: `${longLasting.artist} has stayed with Bert for ${longLasting.yearsActive.length} years.`,
       body: `From ${longLasting.yearsActive[0]} to ${longLasting.yearsActive[longLasting.yearsActive.length - 1]} — a true constant.`,
       metric: `${longLasting.yearsActive.length}y`,
       tone: "ritual",
@@ -247,7 +247,7 @@ function buildInsights(meta, tracks, artists) {
   }
   out.push({
     id: "library-size",
-    headline: `You've explored ${meta.totalArtists.toLocaleString()} artists.`,
+    headline: `Bert has explored ${meta.totalArtists.toLocaleString()} artists.`,
     body: `${meta.totalTracks.toLocaleString()} unique tracks logged across ${meta.yearRange[1] - meta.yearRange[0] + 1} years of listening.`,
     metric: meta.totalArtists.toLocaleString(),
     tone: "discovery",
