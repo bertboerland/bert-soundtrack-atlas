@@ -41,11 +41,18 @@ export interface ProcessedDataset {
   topTracks: TrackAggregate[];
   topArtists: ArtistAggregate[];
   genreEvolution: GenreYearPoint[];
+  clientTimeline: ClientTimelinePoint[];
   heatmap: HeatmapCell[];
   obsessions: Obsession[];
   survivors: Survivor[];
   insights: Insight[];
   galaxyNodes: GalaxyNode[];
+}
+
+export interface ClientTimelinePoint {
+  month: string; // YYYY-MM
+  platform: string;
+  minutes: number;
 }
 
 export interface TrackAggregate {
