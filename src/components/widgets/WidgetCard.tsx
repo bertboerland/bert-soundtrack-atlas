@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 interface WidgetCardProps {
   title?: string;
   subtitle?: string;
+  description?: ReactNode;
   children: ReactNode;
   className?: string;
   full?: boolean;
@@ -13,6 +14,7 @@ interface WidgetCardProps {
 export function WidgetCard({
   title,
   subtitle,
+  description,
   children,
   className = "",
   full = false,
@@ -24,13 +26,13 @@ export function WidgetCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
       transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
-      className={`glass relative overflow-hidden rounded-2xl ${
+      className={`glass relative rounded-2xl ${
         full ? "lg:col-span-12" : ""
       } ${className}`}
     >
-      {(title || subtitle) && (
+      {(title || subtitle || description) && (
         <header className="flex items-end justify-between gap-4 px-6 pt-6 pb-3">
-          <div>
+          <div className="max-w-3xl">
             {title && (
               <h3 className="font-display text-lg font-semibold tracking-tight text-foreground">
                 {title}
@@ -39,6 +41,11 @@ export function WidgetCard({
             {subtitle && (
               <p className="mt-0.5 text-xs uppercase tracking-[0.18em] text-muted-foreground">
                 {subtitle}
+              </p>
+            )}
+            {description && (
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground/80 normal-case">
+                {description}
               </p>
             )}
           </div>

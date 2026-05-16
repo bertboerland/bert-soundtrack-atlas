@@ -66,7 +66,7 @@ export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
 
   return (
     <div className="p-4 sm:p-6">
-      <div className="relative h-64 w-full overflow-hidden rounded-lg border border-white/5 bg-black/30">
+      <div className="relative h-64 w-full rounded-lg border border-white/5 bg-black/30">
         <div className="absolute inset-x-0 bottom-8 h-px bg-white/10" />
         {[0.25, 0.5, 0.75].map((p) => (
           <div

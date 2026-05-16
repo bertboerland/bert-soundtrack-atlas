@@ -18,7 +18,7 @@ export function HeroWidget({ data, source }: HeroProps) {
       {/* Equalizer wave at bottom */}
       <Equalizer />
 
-      <div className="relative z-10 px-5 py-12 sm:px-14 sm:py-20 lg:px-20 lg:py-28">
+      <div className="relative z-10 px-5 pt-12 pb-40 sm:px-14 sm:pt-20 sm:pb-56 lg:px-20 lg:pt-28 lg:pb-64">
         <motion.span
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
