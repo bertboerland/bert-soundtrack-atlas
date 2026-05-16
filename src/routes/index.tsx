@@ -91,7 +91,11 @@ function Dashboard() {
           subtitle="3D constellation of every track"
           delay={0.05}
         >
-          <MusicGalaxy3D nodes={data.galaxyNodes} />
+          <MusicGalaxy3D
+            nodes={data.galaxyNodes}
+            trackGenres={Object.fromEntries(data.topTracks.map((t) => [t.trackId, t.genre]))}
+            artistGenres={Object.fromEntries(data.topArtists.map((a) => [a.artist, a.topGenre]))}
+          />
         </WidgetCard>
 
         {/* Streamgraph */}
