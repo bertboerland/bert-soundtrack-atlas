@@ -88,7 +88,7 @@ export function HeroWidget({ data, source }: HeroProps) {
                 Bert Boerland
               </span>
             </p>
-            <p className="mt-2 inline-block max-w-md rounded-lg border border-[#10b981]/20 bg-[#10b981]/10 px-3 py-2 text-sm leading-relaxed text-muted-foreground backdrop-blur-sm">
+            <p className="mt-2 inline-block max-w-md rounded-lg border border-[#10b981]/20 bg-[#10b981]/20 px-3 py-2 text-sm leading-relaxed text-muted-foreground backdrop-blur-sm">
               Open source advocate · Drupal expert · Keynote speaker · focused on
               digital sovereignty &amp; open ecosystems.
             </p>
