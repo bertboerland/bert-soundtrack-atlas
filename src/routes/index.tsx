@@ -138,7 +138,7 @@ function Dashboard() {
         {/* Insights */}
         <WidgetCard
           title="Insights Engine"
-          subtitle="Patterns the data noticed before you did"
+          subtitle="Patterns the data noticed before Bert did"
           delay={0.22}
         >
           <InsightsEngine insights={data.insights} />
