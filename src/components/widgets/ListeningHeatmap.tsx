@@ -174,12 +174,13 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
     return color;
   }
 
-  const colW = 6;
   const gap = 1;
   const rowH = 56;
   const padY = 28;
   const padBottom = 40;
-  const width = Math.max(600, weeks.length * (colW + gap) + 20);
+  const viewWidth = Math.max(600, weeks.length * 7);
+  const colW = weeks.length > 0 ? (viewWidth - 20) / weeks.length - gap : 6;
+  const width = viewWidth;
   const height = rowH + padY + padBottom;
 
   const coveragePct = totalDays ? Math.round((activeDays / totalDays) * 100) : 0;
