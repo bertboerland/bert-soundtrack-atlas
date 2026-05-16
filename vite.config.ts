@@ -1,19 +1,16 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
-import { resolve } from "node:path";
+
+const isStaticSpaBuild = process.env.STATIC_SPA === "1";
 
 export default defineConfig({
   tanstackStart: {
+    ...(isStaticSpaBuild ? { client: { entry: "client-spa" } } : {}),
     server: { entry: "server" },
   },
   vite: {
     base: process.env.BASE_PATH || "/",
     build: {
       manifest: true,
-      rollupOptions: {
-        input: {
-          "client-spa": resolve(process.cwd(), "src/client-spa.tsx"),
-        },
-      },
     },
   },
 });
