@@ -43,6 +43,52 @@ interface EnrichedNode extends GalaxyNode {
 
 export function MusicGalaxy3D({ nodes, trackGenres = {}, artistGenres = {} }: GalaxyProps) {
   const [hovered, setHovered] = useState<EnrichedNode | null>(null);
+  const [previewState, setPreviewState] = useState<"idle" | "loading" | "playing" | "unavailable">("idle");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Lazy init the shared <audio> element once.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const el = new Audio();
+    el.volume = 0.5;
+    el.preload = "none";
+    audioRef.current = el;
+    return () => {
+      el.pause();
+      el.src = "";
+    };
+  }, []);
+
+  // On hover change: cancel any current playback, then fetch + play the new preview.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.pause();
+    audio.currentTime = 0;
+    if (!hovered) {
+      setPreviewState("idle");
+      return;
+    }
+    let cancelled = false;
+    setPreviewState("loading");
+    const target = hovered;
+    fetchPreviewUrl(target.artist, target.name).then((url) => {
+      if (cancelled || audioRef.current !== audio) return;
+      if (!url) {
+        setPreviewState("unavailable");
+        return;
+      }
+      audio.src = url;
+      audio.play().then(() => {
+        if (!cancelled) setPreviewState("playing");
+      }).catch(() => {
+        if (!cancelled) setPreviewState("unavailable");
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [hovered]);
 
   const enriched: EnrichedNode[] = useMemo(
     () =>
