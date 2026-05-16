@@ -221,25 +221,22 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
         </svg>
       </div>
 
-      {/* Legend */}
-      <div className="mt-3 flex items-center gap-2 px-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-        <span>less</span>
-        {[0.05, 0.2, 0.4, 0.65, 0.95].map((i, idx) => (
-          <span
-            key={idx}
-            className="inline-block h-2.5 w-2.5 rounded-[2px]"
-            style={{
-              background:
-                i < 0.1
-                  ? "rgba(255,255,255,0.035)"
-                  : `rgba(29, 185, 84, ${0.22 + Math.sqrt(i) * 0.78})`,
-            }}
-          />
-        ))}
-        <span>more</span>
-        <span className="ml-auto">
-          {years[years.length - 1]} → {years[0]} · daily minutes
-        </span>
+      {/* Per-year genre legend — connects the heatmap to the streamgraph palette */}
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 px-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+        {[...yearGenre.entries()]
+          .sort((a, b) => b[0] - a[0])
+          .map(([yr, { genre, color }]) => (
+            <span key={yr} className="inline-flex items-center gap-1.5">
+              <span
+                className="inline-block h-2.5 w-2.5 rounded-[2px]"
+                style={{ background: color }}
+              />
+              <span className="font-mono" style={{ color }}>
+                {yr}
+              </span>
+              <span className="opacity-60">{genre}</span>
+            </span>
+          ))}
       </div>
 
       {hover && (
