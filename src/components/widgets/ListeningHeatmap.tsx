@@ -107,9 +107,12 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
     };
   }, [cells]);
 
-  // Year → dominant genre/color (matches streamgraph)
-  const yearGenre = useMemo(() => {
-    const m = new Map<number, { genre: string; color: string }>();
+  // Year → ordered list of top genres + colors (matches streamgraph)
+  const yearGenres = useMemo(() => {
+    const m = new Map<
+      number,
+      { genres: { genre: string; color: string; share: number }[] }
+    >();
     const byYear = new Map<number, Map<string, number>>();
     for (const p of genreEvolution) {
       if (!byYear.has(p.year)) byYear.set(p.year, new Map());
@@ -117,12 +120,46 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
       g.set(p.genre, (g.get(p.genre) ?? 0) + p.minutes);
     }
     for (const [yr, g] of byYear) {
-      const top = [...g.entries()].sort((a, b) => b[1] - a[1])[0];
-      const genre = top?.[0] ?? "Unknown";
-      m.set(yr, { genre, color: colorForGenre(genre) });
+      const total = [...g.values()].reduce((a, b) => a + b, 0) || 1;
+      const sorted = [...g.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([genre, mins]) => ({
+          genre,
+          color: colorForGenre(genre),
+          share: mins / total,
+        }));
+      m.set(yr, { genres: sorted });
     }
     return m;
   }, [genreEvolution]);
+
+  // Legend uses dominant per year
+  const yearGenre = useMemo(() => {
+    const m = new Map<number, { genre: string; color: string }>();
+    for (const [yr, { genres }] of yearGenres) {
+      if (genres.length > 0) m.set(yr, { genre: genres[0].genre, color: genres[0].color });
+    }
+    return m;
+  }, [yearGenres]);
+
+  // Deterministic pick of a genre for a given week index using cumulative shares
+  function pickGenreForWeek(
+    year: number,
+    weekIndexInYear: number,
+  ): { color: string } {
+    const yg = yearGenres.get(year);
+    if (!yg || yg.genres.length === 0) return { color: "#1DB954" };
+    // pseudo-random but stable per (year, week)
+    const seed = (year * 53 + weekIndexInYear * 9301 + 49297) % 233280;
+    const r = seed / 233280;
+    let acc = 0;
+    for (const g of yg.genres) {
+      acc += g.share;
+      if (r <= acc) return { color: g.color };
+    }
+    return { color: yg.genres[0].color };
+  }
 
   function withAlpha(color: string, alpha: number): string {
     if (color.startsWith("#")) {
