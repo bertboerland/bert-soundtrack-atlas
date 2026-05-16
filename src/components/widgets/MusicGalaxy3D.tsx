@@ -40,15 +40,24 @@ export function MusicGalaxy3D({
     else release();
   }
 
-  const enriched: EnrichedNode[] = useMemo(
-    () =>
-      nodes.map((n) => {
-        const genre =
-          trackGenres[n.id] ?? artistGenres[n.artist] ?? "Unknown";
-        return { ...n, genre, color: colorForGenre(genre) };
-      }),
-    [nodes, trackGenres, artistGenres],
-  );
+  // Popularity scaling: spheres grow with total plays. Falls back to the
+  // ingest-time `size` field when no plays map is provided.
+  const enriched: EnrichedNode[] = useMemo(() => {
+    const playValues = Object.values(trackPlays);
+    const maxPlays = playValues.length ? Math.max(...playValues) : 0;
+    return nodes.map((n) => {
+      const genre = trackGenres[n.id] ?? artistGenres[n.artist] ?? "Unknown";
+      const plays = trackPlays[n.id] ?? 0;
+      // Log-scale popularity to a 0..1 visual weight, then map to a radius
+      // range that's noticeably non-uniform across the galaxy.
+      const popWeight =
+        maxPlays > 0
+          ? Math.log10(1 + plays) / Math.log10(1 + maxPlays)
+          : (n.size - 0.05) / 0.4; // fallback using ingest size
+      const radius = 0.18 + Math.pow(Math.max(0, popWeight), 0.85) * 0.95;
+      return { ...n, genre, color: colorForGenre(genre), radius };
+    });
+  }, [nodes, trackGenres, artistGenres, trackPlays]);
 
   // Group nodes by artist so we can draw constellation lines + a centroid.
   const constellations = useMemo(() => {
