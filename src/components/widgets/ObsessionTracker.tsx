@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Flame } from "lucide-react";
 import type { Obsession, TrackAggregate } from "@/lib/spotify/types";
+import { usePreviewAudio } from "@/lib/spotify/usePreviewAudio";
 
 interface Props {
   obsessions: Obsession[];
@@ -17,6 +18,7 @@ interface Props {
  * top track using firstPlayed + a heuristic peak share of total plays.
  */
 export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
+  const { play, release } = usePreviewAudio(10_000);
   const data = useMemo<Obsession[]>(() => {
     if (obsessions.length > 0) return obsessions;
     if (topTracks.length === 0) return [];
@@ -88,6 +90,8 @@ export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
                 transition={{ duration: 0.7, delay: i * 0.03, ease: [0.16, 1, 0.3, 1] }}
                 style={{ height: `${h}px`, transformOrigin: "bottom" }}
                 className="group relative flex-1 cursor-pointer"
+                onMouseEnter={() => play(o.artist, o.name)}
+                onMouseLeave={() => release()}
               >
                 <div className="absolute inset-x-0 bottom-0 h-full rounded-t-sm bg-gradient-to-t from-primary/80 via-primary/60 to-primary/20 shadow-[0_0_12px_rgba(29,185,84,0.4)] transition group-hover:from-primary group-hover:to-primary/40" />
                 <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-white/10 bg-black/90 px-3 py-2 text-xs shadow-xl group-hover:block">
@@ -116,7 +120,9 @@ export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: i * 0.04 }}
-            className="flex items-center gap-3 rounded-lg border border-white/5 bg-white/[0.02] p-3"
+            className="flex cursor-pointer items-center gap-3 rounded-lg border border-white/5 bg-white/[0.02] p-3 transition hover:border-primary/30 hover:bg-white/[0.04]"
+            onMouseEnter={() => play(o.artist, o.name)}
+            onMouseLeave={() => release()}
           >
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-primary/30 bg-primary/10 text-primary">
               <Flame className="h-3.5 w-3.5" />

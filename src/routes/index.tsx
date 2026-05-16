@@ -96,6 +96,7 @@ function Dashboard() {
             nodes={data.galaxyNodes}
             trackGenres={Object.fromEntries(data.topTracks.map((t) => [t.trackId, t.genre]))}
             artistGenres={Object.fromEntries(data.topArtists.map((a) => [a.artist, a.topGenre]))}
+            trackPlays={Object.fromEntries(data.topTracks.map((t) => [t.trackId, t.plays]))}
           />
         </WidgetCard>
 
@@ -138,7 +139,7 @@ function Dashboard() {
         {/* Insights */}
         <WidgetCard
           title="Insights Engine"
-          subtitle="Patterns the data noticed before you did"
+          subtitle="Patterns the data noticed before Bert did"
           delay={0.22}
         >
           <InsightsEngine insights={data.insights} />

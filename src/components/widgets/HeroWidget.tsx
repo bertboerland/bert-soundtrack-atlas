@@ -50,6 +50,18 @@ export function HeroWidget({ data, source }: HeroProps) {
           years of listening.
         </motion.p>
 
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          className="mt-4 max-w-2xl rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm leading-relaxed text-muted-foreground backdrop-blur-sm sm:text-base"
+        >
+          I love playing around with data visualisation, so I downloaded every song
+          I&apos;ve ever pressed play on in Spotify and started experimenting with it
+          on this page. Hover, scroll and explore — it&apos;s a work-in-progress
+          sandbox more than a finished product.
+        </motion.p>
+
         {/* Stats row */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
