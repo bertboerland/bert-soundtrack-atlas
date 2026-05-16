@@ -1,9 +1,32 @@
-import { Suspense, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import type { GalaxyNode } from "@/lib/spotify/types";
 import { colorForGenre } from "@/lib/spotify/genreColors";
+
+/**
+ * iTunes Search API → 30s preview mp3. No auth, CORS-friendly.
+ * Returns null if nothing matches or the request fails.
+ */
+const PREVIEW_CACHE = new Map<string, string | null>();
+async function fetchPreviewUrl(artist: string, track: string): Promise<string | null> {
+  const key = `${artist}::${track}`;
+  if (PREVIEW_CACHE.has(key)) return PREVIEW_CACHE.get(key)!;
+  try {
+    const q = encodeURIComponent(`${artist} ${track}`);
+    const res = await fetch(
+      `https://itunes.apple.com/search?term=${q}&media=music&limit=1`,
+    );
+    const json = (await res.json()) as { results?: Array<{ previewUrl?: string }> };
+    const url = json.results?.[0]?.previewUrl ?? null;
+    PREVIEW_CACHE.set(key, url);
+    return url;
+  } catch {
+    PREVIEW_CACHE.set(key, null);
+    return null;
+  }
+}
 
 interface GalaxyProps {
   nodes: GalaxyNode[];
