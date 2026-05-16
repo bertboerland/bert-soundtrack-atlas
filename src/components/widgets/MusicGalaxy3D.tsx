@@ -115,7 +115,7 @@ export function MusicGalaxy3D({
           <ConstellationCloud
             nodes={enriched}
             constellations={constellations}
-            onHover={setHovered}
+            onHover={handleHover}
           />
           <OrbitControls
             enablePan={false}
@@ -165,27 +165,38 @@ export function MusicGalaxy3D({
             {hovered.name}
           </div>
           <div className="mt-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            {previewState === "loading" && (
-              <>
-                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-                loading preview…
-              </>
-            )}
-            {previewState === "playing" && (
-              <>
-                <span className="inline-flex items-end gap-[2px]">
-                  {[0, 1, 2].map((i) => (
-                    <span
-                      key={i}
-                      className="block w-[2px] animate-equalizer bg-primary"
-                      style={{ height: 8, animationDelay: `${i * 120}ms` }}
-                    />
-                  ))}
-                </span>
-                <span className="text-primary">playing 30s preview</span>
-              </>
-            )}
-            {previewState === "unavailable" && <span>no preview available</span>}
+            {(() => {
+              const isCurrent =
+                activeKey === `${hovered.artist}::${hovered.name}`;
+              if (isCurrent && state === "loading") {
+                return (
+                  <>
+                    <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+                    loading preview…
+                  </>
+                );
+              }
+              if (isCurrent && state === "playing") {
+                return (
+                  <>
+                    <span className="inline-flex items-end gap-[2px]">
+                      {[0, 1, 2].map((i) => (
+                        <span
+                          key={i}
+                          className="block w-[2px] animate-equalizer bg-primary"
+                          style={{ height: 8, animationDelay: `${i * 120}ms` }}
+                        />
+                      ))}
+                    </span>
+                    <span className="text-primary">playing 30s preview</span>
+                  </>
+                );
+              }
+              if (isCurrent && state === "unavailable") {
+                return <span>no preview available</span>;
+              }
+              return <span className="opacity-60">hover holds for 10s</span>;
+            })()}
           </div>
         </div>
       )}
