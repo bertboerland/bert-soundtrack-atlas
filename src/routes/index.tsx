@@ -88,7 +88,7 @@ function Dashboard() {
         {/* 3D Galaxy — full width */}
         <WidgetCard
           title="Music Galaxy"
-          subtitle="3D constellation of every track"
+          subtitle="3D constellation of every track — each star is a song, sized by total play-time, coloured by genre, and connected by faint lines to other tracks by the same artist. Drag to orbit, scroll to zoom, hover to hear a 30-second preview."
           delay={0.05}
         >
           <MusicGalaxy3D
@@ -145,8 +145,18 @@ function Dashboard() {
 
         {/* Footer credit */}
         <footer className="px-2 pt-8 text-center text-xs text-muted-foreground">
-          Built with React, D3, Three.js &amp; Framer Motion · {data.meta.totalStreams.toLocaleString()}{" "}
-          streams analysed · self-hostable, open-source.
+          Built with React, D3, Three.js &amp; Framer Motion ·{" "}
+          {data.meta.totalStreams.toLocaleString()} streams analysed · self-hostable,
+          open-source on{" "}
+          <a
+            href="https://github.com/bertboerland/bert-soundtrack-atlas"
+            target="_blank"
+            rel="noreferrer"
+            className="story-link text-primary/90 hover:text-primary"
+          >
+            GitHub
+          </a>
+          .
         </footer>
       </main>
 

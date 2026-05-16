@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Linkedin, Globe, Music2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { ProcessedDataset } from "@/lib/spotify/types";
 
 interface HeroProps {
@@ -17,12 +18,12 @@ export function HeroWidget({ data, source }: HeroProps) {
       {/* Equalizer wave at bottom */}
       <Equalizer />
 
-      <div className="relative z-10 px-8 py-16 sm:px-14 sm:py-20 lg:px-20 lg:py-28">
+      <div className="relative z-10 px-5 py-12 sm:px-14 sm:py-20 lg:px-20 lg:py-28">
         <motion.span
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-primary"
+          className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-primary sm:text-xs"
         >
           <Music2 className="h-3 w-3" />
           {data.meta.yearRange[0]} → {data.meta.yearRange[1]} · An interactive memoir
@@ -32,17 +33,17 @@ export function HeroWidget({ data, source }: HeroProps) {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-6 font-display text-5xl font-semibold leading-[0.95] tracking-tight sm:text-7xl lg:text-[5.5rem]"
+          className="mt-6 font-display text-4xl font-semibold leading-[1] tracking-tight sm:text-7xl lg:text-[5.5rem]"
         >
           The Soundtrack <br />
-          of <span className="gradient-text text-glow">Bert</span>
+          of <span className="gradient-text text-glow">Bert Boerland</span>
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl"
+          className="mt-6 max-w-2xl text-base text-muted-foreground sm:text-xl"
         >
           A living map of years, obsessions, rhythms and sonic memories — every track
           Bert ever pressed play on, mapped across {data.meta.yearRange[1] - data.meta.yearRange[0] + 1}{" "}
@@ -54,7 +55,7 @@ export function HeroWidget({ data, source }: HeroProps) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.55 }}
-          className="mt-10 grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4"
+          className="mt-10 grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4"
         >
           <Stat label="Minutes" value={fmt(data.meta.totalMinutes)} />
           <Stat label="Streams" value={fmt(data.meta.totalStreams)} />
@@ -70,26 +71,38 @@ export function HeroWidget({ data, source }: HeroProps) {
           className="mt-12 flex flex-col gap-6 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between"
         >
           <div>
-            <p className="font-display text-base font-medium text-foreground">Bert Boerland</p>
-            <p className="mt-1 max-w-md text-sm text-muted-foreground">
+            <p className="font-display text-base font-medium text-foreground">
+              <span className="gradient-text transition-all duration-300 hover:text-glow">
+                Bert Boerland
+              </span>
+            </p>
+            <p className="mt-2 inline-block max-w-md rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm leading-relaxed text-muted-foreground backdrop-blur-sm">
               Open source advocate · Drupal expert · Keynote speaker · focused on
               digital sovereignty &amp; open ecosystems.
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             <a
               href="https://www.linkedin.com/in/bertboerland/"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-foreground transition hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-foreground transition hover:border-primary/40 hover:bg-primary/10 hover:text-primary sm:px-4 sm:text-sm"
             >
               <Linkedin className="h-4 w-4" /> LinkedIn
+            </a>
+            <a
+              href="http://drupal.org/u/bert"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-foreground transition hover:border-primary/40 hover:bg-primary/10 hover:text-primary sm:px-4 sm:text-sm"
+            >
+              <DrupalIcon className="h-4 w-4" /> Drupal
             </a>
             <a
               href="https://boer.land"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-foreground transition hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-foreground transition hover:border-primary/40 hover:bg-primary/10 hover:text-primary sm:px-4 sm:text-sm"
             >
               <Globe className="h-4 w-4" /> boer.land
             </a>
@@ -108,11 +121,11 @@ export function HeroWidget({ data, source }: HeroProps) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3 backdrop-blur">
-      <div className="font-display text-2xl font-semibold text-foreground sm:text-3xl">
+    <div className="rounded-xl border border-white/5 bg-white/[0.02] px-3 py-3 backdrop-blur sm:px-4">
+      <div className="font-display text-xl font-semibold text-foreground sm:text-3xl">
         {value}
       </div>
-      <div className="mt-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+      <div className="mt-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground sm:text-[10px]">
         {label}
       </div>
     </div>
@@ -125,9 +138,25 @@ function fmt(n: number): string {
   return String(n);
 }
 
+/** Inline Drupal "droplet" icon, styled like lucide for consistency. */
+function DrupalIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M15.78 6.22C14.27 4.71 12.84 3.28 12 1c-.84 2.28-2.27 3.71-3.78 5.22C6 8.45 3.5 10.94 3.5 14.66 3.5 19.27 7.13 23 12 23s8.5-3.73 8.5-8.34c0-3.72-2.5-6.21-4.72-8.44ZM7.6 18.5c-.95-.07-4.5-6.13.43-11l.04.05c-.07.1-3.5 5.16-.16 8.6 1.46 1.5 1.5 2.31-.31 2.35Zm4.4 2c-1.55 0-2.8-1.05-2.8-2.6 0-2.06 1.93-2.6 3.2-4.32.18-.24.37-.48.6-.7 0 0 1.8 2.45 2.6 4.3.79 1.86-.41 3.32-3.6 3.32Zm6.5-4.92c-.16-.2-.32-.32-.43-.13-2.04 3.52-4.66.92-5.78-.55-1.6-2.1-3.65-4.04-4.85-5.42-1.18-1.36-1.18-2.3-.66-3.18.92-1.55 3.5-2.07 5.05-3.78 0 .94 1.16 1.86 2.43 3.06s4.95 3.55 4.95 7.96c0 .87-.18 1.59-.34 2.04-.06.16-.18.17-.37 0Z" />
+    </svg>
+  );
+}
+
 function ParticleField() {
   // Cheap CSS particle field — lots of softly-glowing dots that drift.
-  const particles = Array.from({ length: 70 });
+  const isMobile = useIsMobile();
+  const count = isMobile ? 28 : 70;
+  const particles = Array.from({ length: count });
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       <div className="absolute inset-0 grid-bg opacity-[0.4]" />
@@ -159,13 +188,12 @@ function ParticleField() {
 
 function Equalizer() {
   // Audio-waveform–style visualization: symmetric bars mirrored around a
-  // center axis, with heights driven by a sum-of-sines envelope so the
-  // silhouette reads as a real .wav file rather than a chart equalizer.
-  const N = 160;
+  // center axis. Reduced bar count on mobile to keep performance healthy.
+  const isMobile = useIsMobile();
+  const N = isMobile ? 60 : 160;
   const bars = useMemo(() => {
     return Array.from({ length: N }).map((_, i) => {
       const t = i / N;
-      // Sum of sines + a pseudo-random micro-jitter for realism
       const envelope =
         0.55 +
         0.35 * Math.sin(t * Math.PI * 3.1) +
@@ -179,14 +207,13 @@ function Equalizer() {
         duration: 1400 + ((i * 91) % 1200),
       };
     });
-  }, []);
+  }, [N]);
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-36 opacity-60">
-      {/* Soft center-line glow */}
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-24 opacity-60 sm:h-36">
       <div className="absolute inset-x-0 bottom-[calc(50%-1px)] h-px bg-primary/40 shadow-[0_0_12px_rgba(29,185,84,0.5)]" />
       <div className="flex h-full items-center gap-[2px] px-2">
-        {bars.map((b: { amp: number; delay: number; duration: number }, i: number) => (
+        {bars.map((b, i) => (
           <span
             key={i}
             className="flex-1 animate-waveform"
@@ -198,12 +225,10 @@ function Equalizer() {
               } as React.CSSProperties
             }
           >
-            {/* upper half */}
             <span
               className="block w-full rounded-full bg-gradient-to-t from-primary/90 to-cyan-glow/70"
               style={{ height: `calc(50% * var(--amp))`, marginTop: `calc(50% - 50% * var(--amp))` }}
             />
-            {/* lower half (mirror) */}
             <span
               className="block w-full rounded-full bg-gradient-to-b from-primary/90 to-cyan-glow/30"
               style={{ height: `calc(50% * var(--amp))` }}
