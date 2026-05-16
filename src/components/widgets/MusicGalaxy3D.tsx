@@ -205,6 +205,29 @@ export function MusicGalaxy3D({ nodes, trackGenres = {}, artistGenres = {} }: Ga
           <div className="mt-0.5 font-display text-sm font-medium text-foreground">
             {hovered.name}
           </div>
+          <div className="mt-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            {previewState === "loading" && (
+              <>
+                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+                loading preview…
+              </>
+            )}
+            {previewState === "playing" && (
+              <>
+                <span className="inline-flex items-end gap-[2px]">
+                  {[0, 1, 2].map((i) => (
+                    <span
+                      key={i}
+                      className="block w-[2px] animate-equalizer bg-primary"
+                      style={{ height: 8, animationDelay: `${i * 120}ms` }}
+                    />
+                  ))}
+                </span>
+                <span className="text-primary">playing 30s preview</span>
+              </>
+            )}
+            {previewState === "unavailable" && <span>no preview available</span>}
+          </div>
         </div>
       )}
     </div>
