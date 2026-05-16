@@ -88,7 +88,8 @@ function Dashboard() {
         {/* 3D Galaxy — full width */}
         <WidgetCard
           title="Music Galaxy"
-          subtitle="3D constellation of every track — each star is a song, sized by total play-time, coloured by genre, and connected by faint lines to other tracks by the same artist. Drag to orbit, scroll to zoom, hover to hear a 30-second preview."
+          subtitle="3D constellation of every track"
+          description="Each star is a song, sized by total play-time, coloured by genre, and connected by faint lines to other tracks by the same artist. Drag to orbit, scroll to zoom, hover to hear a 30-second preview."
           delay={0.05}
         >
           <MusicGalaxy3D
