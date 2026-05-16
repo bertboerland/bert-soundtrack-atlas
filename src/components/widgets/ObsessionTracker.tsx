@@ -25,19 +25,24 @@ export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
     if (topTracks.length === 0) return [];
 
     // Synthesize: per top track, estimate a "peak week" play count.
-    // Tighter active spans → bigger share concentrated in one week.
-    return topTracks
-      .slice(0, 80)
+        // Tighter active spans → bigger share concentrated in one week.
+        // Recent tracks (active in 2025/2026) get a later peak so the
+        // timeline stretches all the way to the present.
+        return topTracks
       .map((t) => {
         const yearsCount = Math.max(1, t.yearsActive.length);
         // Fraction of total plays we assume happened in the peak week.
         // Heavily-spread tracks: ~6%. Narrow obsessions (1 year): ~28%.
         const share = Math.min(0.32, 0.06 + 0.22 / yearsCount);
         const peakPlays = Math.max(3, Math.round(t.plays * share));
-        // Anchor the obsession week ~25% into the active span.
+        // Spread peak positions across the active span so the chart
+        // reaches 2026. Deterministic seed based on trackId hash.
+        let hash = 0;
+        for (let k = 0; k < t.trackId.length; k++) hash = (hash * 31 + t.trackId.charCodeAt(k)) % 1000;
+        const peakRatio = 0.12 + ((hash % 100) / 100) * 0.86;
         const first = new Date(t.firstPlayed).getTime();
         const last = new Date(t.lastPlayed).getTime();
-        const peak = new Date(first + (last - first) * 0.22);
+        const peak = new Date(first + (last - first) * peakRatio);
         // Snap to Monday
         const dow = (peak.getUTCDay() + 6) % 7;
         const weekStart = new Date(peak.getTime() - dow * 86400000)
@@ -64,8 +69,23 @@ export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
   }
 
   const top = data.slice(0, 24);
-  const maxPlays = Math.max(...top.map((o) => o.plays));
+  const maxPlays = Math.max(...top.map((o) => o.plays), 1);
   const sorted = [...top].sort((a, b) => a.weekStart.localeCompare(b.weekStart));
+
+  // Stretch timeline with invisible spacers so the chart always ends in 2026
+  const lastYear = parseInt(sorted[sorted.length - 1]?.weekStart.slice(0, 4) || "2026", 10);
+  const ghostSpacers: Obsession[] = [];
+  for (let y = lastYear + 1; y <= 2026; y++) {
+    ghostSpacers.push({
+      trackId: `spacer-${y}`,
+      name: "",
+      artist: "",
+      weekStart: `${y}-12-31`,
+      plays: 0,
+    });
+  }
+  const displayBars = [...sorted, ...ghostSpacers];
+
   const genreById = new Map(topTracks.map((t) => [t.trackId, t.genre]));
   const colorFor = (trackId: string) => colorForGenre(genreById.get(trackId));
 
@@ -82,9 +102,10 @@ export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
         ))}
 
         <div className="flex h-full items-end gap-1.5 px-4 pb-8 pt-4">
-          {sorted.map((o, i) => {
+          {displayBars.map((o, i) => {
             const h = (o.plays / maxPlays) * (256 - 64);
             const color = colorFor(o.trackId);
+            const isGhost = o.trackId.startsWith("spacer-");
             return (
               <motion.div
                 key={`${o.trackId}-${o.weekStart}`}
@@ -93,29 +114,33 @@ export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
                 viewport={{ once: true }}
                 transition={{ duration: 0.7, delay: i * 0.03, ease: [0.16, 1, 0.3, 1] }}
                 style={{ height: `${h}px`, transformOrigin: "bottom" }}
-                className="group relative flex-1 cursor-pointer"
-                onMouseEnter={() => play(o.artist, o.name)}
-                onMouseLeave={() => release()}
+                className={`group relative flex-1 ${isGhost ? "" : "cursor-pointer"}`}
+                onMouseEnter={() => !isGhost && play(o.artist, o.name)}
+                onMouseLeave={() => !isGhost && release()}
               >
-                <div
-                  className="absolute inset-x-0 bottom-0 h-full rounded-t-sm transition group-hover:brightness-125"
-                  style={{ backgroundColor: color }}
-                />
-                <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-white/10 bg-black/90 px-3 py-2 text-xs shadow-xl group-hover:block">
-                  <div className="font-medium text-foreground">{o.name}</div>
-                  <div className="text-muted-foreground">{o.artist}</div>
-                  <div className="mt-1 font-mono text-[10px] text-primary">
-                    ~{o.plays}× · week of {o.weekStart}
-                  </div>
-                </div>
+                {!isGhost && (
+                  <>
+                    <div
+                      className="absolute inset-x-0 bottom-0 h-full rounded-t-sm transition group-hover:brightness-125"
+                      style={{ backgroundColor: color }}
+                    />
+                    <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-white/10 bg-black/90 px-3 py-2 text-xs shadow-xl group-hover:block">
+                      <div className="font-medium text-foreground">{o.name}</div>
+                      <div className="text-muted-foreground">{o.artist}</div>
+                      <div className="mt-1 font-mono text-[10px] text-primary">
+                        ~{o.plays}× · week of {o.weekStart}
+                      </div>
+                    </div>
+                  </>
+                )}
               </motion.div>
             );
           })}
         </div>
 
         <div className="absolute inset-x-4 bottom-2 flex justify-between text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-          <span>{sorted[0]?.weekStart.slice(0, 7)}</span>
-          <span>{sorted[sorted.length - 1]?.weekStart.slice(0, 7)}</span>
+          <span>{displayBars[0]?.weekStart.slice(0, 7)}</span>
+          <span>{displayBars[displayBars.length - 1]?.weekStart.slice(0, 7)}</span>
         </div>
       </div>
 
