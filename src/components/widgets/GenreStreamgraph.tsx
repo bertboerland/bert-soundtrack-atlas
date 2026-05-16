@@ -75,8 +75,8 @@ export function GenreStreamgraph({ data }: Props) {
         <defs>
           {paths.map((p) => (
             <linearGradient key={p.genre} id={`gs-${slug(p.genre)}`} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor={`hsl(${p.hue} 70% 60%)`} stopOpacity="0.95" />
-              <stop offset="100%" stopColor={`hsl(${p.hue} 70% 40%)`} stopOpacity="0.3" />
+              <stop offset="0%" stopColor={p.color} stopOpacity="0.95" />
+              <stop offset="100%" stopColor={p.color} stopOpacity="0.35" />
             </linearGradient>
           ))}
         </defs>
