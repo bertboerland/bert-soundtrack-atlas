@@ -110,7 +110,7 @@ function Dashboard() {
         {/* Heatmap */}
         <WidgetCard
           title="Listening Heatmap"
-          subtitle="Hourly intensity across one year"
+          subtitle="Every day, every year — colored by the dominant genre of that year"
           delay={0.15}
         >
           <ListeningHeatmap cells={data.heatmap} genreEvolution={data.genreEvolution} />
