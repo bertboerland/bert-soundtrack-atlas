@@ -109,7 +109,7 @@ function Dashboard() {
           subtitle="Hourly intensity across one year"
           delay={0.15}
         >
-          <ListeningHeatmap cells={data.heatmap} />
+          <ListeningHeatmap cells={data.heatmap} genreEvolution={data.genreEvolution} />
         </WidgetCard>
 
         {/* Obsessions */}
