@@ -8,7 +8,7 @@
  *
  *   BASE_PATH=/spotify26/ npm run build:static
  */
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { copyFileSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 const DIST = "dist/client";
@@ -87,3 +87,10 @@ ${scriptTags}
 
 writeFileSync(join(DIST, "index.html"), html);
 console.log(`✓ Wrote ${DIST}/index.html  (base="${BASE}", entry="${entryFile}")`);
+
+const nestedData = join(DIST, "data", "processed.json");
+const rootData = join(DIST, "processed.json");
+if (existsSync(nestedData)) {
+  copyFileSync(nestedData, rootData);
+  console.log(`✓ Wrote ${rootData} as root-level data fallback`);
+}
