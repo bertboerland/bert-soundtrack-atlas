@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Flame } from "lucide-react";
 import type { Obsession, TrackAggregate } from "@/lib/spotify/types";
 import { usePreviewAudio } from "@/lib/spotify/usePreviewAudio";
+import { colorForGenre } from "@/lib/spotify/genreColors";
 
 interface Props {
   obsessions: Obsession[];
@@ -65,6 +66,8 @@ export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
   const top = data.slice(0, 24);
   const maxPlays = Math.max(...top.map((o) => o.plays));
   const sorted = [...top].sort((a, b) => a.weekStart.localeCompare(b.weekStart));
+  const genreById = new Map(topTracks.map((t) => [t.trackId, t.genre]));
+  const colorFor = (trackId: string) => colorForGenre(genreById.get(trackId));
 
   return (
     <div className="p-4 sm:p-6">
@@ -81,6 +84,7 @@ export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
         <div className="flex h-full items-end gap-1.5 px-4 pb-8 pt-4">
           {sorted.map((o, i) => {
             const h = (o.plays / maxPlays) * (256 - 64);
+            const color = colorFor(o.trackId);
             return (
               <motion.div
                 key={`${o.trackId}-${o.weekStart}`}
@@ -93,7 +97,10 @@ export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
                 onMouseEnter={() => play(o.artist, o.name)}
                 onMouseLeave={() => release()}
               >
-                <div className="absolute inset-x-0 bottom-0 h-full rounded-t-sm bg-gradient-to-t from-primary/80 via-primary/60 to-primary/20 shadow-[0_0_12px_rgba(29,185,84,0.4)] transition group-hover:from-primary group-hover:to-primary/40" />
+                <div
+                  className="absolute inset-x-0 bottom-0 h-full rounded-t-sm transition group-hover:brightness-125"
+                  style={{ backgroundColor: color }}
+                />
                 <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-white/10 bg-black/90 px-3 py-2 text-xs shadow-xl group-hover:block">
                   <div className="font-medium text-foreground">{o.name}</div>
                   <div className="text-muted-foreground">{o.artist}</div>
