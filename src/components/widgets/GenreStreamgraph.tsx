@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState, useEffect } from "react";
 import * as d3 from "d3";
 import type { GenreYearPoint } from "@/lib/spotify/types";
+import { colorForGenre } from "@/lib/spotify/genreColors";
 
 interface Props {
   data: GenreYearPoint[];
