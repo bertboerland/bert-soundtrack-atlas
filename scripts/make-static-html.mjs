@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 /**
- * Post-build: generate a static index.html in dist/client/ so the app
- * can be served as a pure SPA from any static file host (Apache, nginx, S3).
+ * Post-build: generate a static index.html in dist/client/ that boots the
+ * SPA entry (src/client-spa.tsx) instead of TanStack Start's SSR hydrator.
  *
- * Reads dist/client/.vite/manifest.json, finds all `isEntry` chunks plus
- * their CSS imports, and writes an HTML shell that boots the client router.
+ * Reads dist/client/.vite/manifest.json, picks the client-spa entry plus
+ * all its CSS, and writes an HTML shell.
  *
- * Set BASE_PATH env var if hosting under a subpath, e.g.:
- *   BASE_PATH=/spotify26/ npm run build && node scripts/make-static-html.mjs
+ *   BASE_PATH=/spotify26/ npm run build:static
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -23,33 +22,43 @@ if (!existsSync(manifestPath)) {
 
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
 
+// Find our SPA entry (keyed as "src/client-spa.tsx" in the manifest).
+const entryKey = Object.keys(manifest).find(
+  (k) => k.endsWith("client-spa.tsx") && manifest[k].isEntry,
+);
+if (!entryKey) {
+  console.error(
+    "✗ client-spa entry not found in manifest. Did vite.config rollupOptions.input include it?",
+  );
+  console.error("  Entries seen:", Object.keys(manifest).filter((k) => manifest[k].isEntry));
+  process.exit(1);
+}
+
 const scripts = new Set();
 const styles = new Set();
+const seen = new Set();
 
 function collect(chunk) {
-  if (!chunk) return;
+  if (!chunk || seen.has(chunk.file)) return;
+  seen.add(chunk.file);
   if (chunk.file && chunk.file.endsWith(".js")) scripts.add(chunk.file);
   for (const css of chunk.css || []) styles.add(css);
   for (const imp of chunk.imports || []) collect(manifest[imp]);
 }
 
-// All entry chunks (TanStack Start usually emits one client entry).
-for (const key of Object.keys(manifest)) {
-  if (manifest[key].isEntry) collect(manifest[key]);
-}
-
-if (scripts.size === 0) {
-  console.error("✗ No entry chunks found in manifest.");
-  process.exit(1);
-}
+collect(manifest[entryKey]);
 
 const styleTags = [...styles]
   .map((href) => `    <link rel="stylesheet" href="${BASE}${href}">`)
   .join("\n");
 
-const scriptTags = [...scripts]
-  .map((src) => `    <script type="module" src="${BASE}${src}"></script>`)
-  .join("\n");
+// Entry script must be last so its imports are already preloaded.
+const entryFile = manifest[entryKey].file;
+const otherScripts = [...scripts].filter((s) => s !== entryFile);
+const scriptTags = [
+  ...otherScripts.map((src) => `    <link rel="modulepreload" href="${BASE}${src}">`),
+  `    <script type="module" src="${BASE}${entryFile}"></script>`,
+].join("\n");
 
 const html = `<!doctype html>
 <html lang="en">
@@ -75,6 +84,4 @@ ${scriptTags}
 `;
 
 writeFileSync(join(DIST, "index.html"), html);
-console.log(`✓ Wrote ${DIST}/index.html  (base="${BASE}")`);
-console.log(`  scripts: ${[...scripts].join(", ")}`);
-console.log(`  styles:  ${[...styles].join(", ") || "(none)"}`);
+console.log(`✓ Wrote ${DIST}/index.html  (base="${BASE}", entry="${entryFile}")`);
