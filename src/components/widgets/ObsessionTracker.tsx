@@ -102,9 +102,10 @@ export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
         ))}
 
         <div className="flex h-full items-end gap-1.5 px-4 pb-8 pt-4">
-          {sorted.map((o, i) => {
+          {displayBars.map((o, i) => {
             const h = (o.plays / maxPlays) * (256 - 64);
             const color = colorFor(o.trackId);
+            const isGhost = o.trackId.startsWith("spacer-");
             return (
               <motion.div
                 key={`${o.trackId}-${o.weekStart}`}
@@ -113,29 +114,33 @@ export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
                 viewport={{ once: true }}
                 transition={{ duration: 0.7, delay: i * 0.03, ease: [0.16, 1, 0.3, 1] }}
                 style={{ height: `${h}px`, transformOrigin: "bottom" }}
-                className="group relative flex-1 cursor-pointer"
-                onMouseEnter={() => play(o.artist, o.name)}
-                onMouseLeave={() => release()}
+                className={`group relative flex-1 ${isGhost ? "" : "cursor-pointer"}`}
+                onMouseEnter={() => !isGhost && play(o.artist, o.name)}
+                onMouseLeave={() => !isGhost && release()}
               >
-                <div
-                  className="absolute inset-x-0 bottom-0 h-full rounded-t-sm transition group-hover:brightness-125"
-                  style={{ backgroundColor: color }}
-                />
-                <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-white/10 bg-black/90 px-3 py-2 text-xs shadow-xl group-hover:block">
-                  <div className="font-medium text-foreground">{o.name}</div>
-                  <div className="text-muted-foreground">{o.artist}</div>
-                  <div className="mt-1 font-mono text-[10px] text-primary">
-                    ~{o.plays}× · week of {o.weekStart}
-                  </div>
-                </div>
+                {!isGhost && (
+                  <>
+                    <div
+                      className="absolute inset-x-0 bottom-0 h-full rounded-t-sm transition group-hover:brightness-125"
+                      style={{ backgroundColor: color }}
+                    />
+                    <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-white/10 bg-black/90 px-3 py-2 text-xs shadow-xl group-hover:block">
+                      <div className="font-medium text-foreground">{o.name}</div>
+                      <div className="text-muted-foreground">{o.artist}</div>
+                      <div className="mt-1 font-mono text-[10px] text-primary">
+                        ~{o.plays}× · week of {o.weekStart}
+                      </div>
+                    </div>
+                  </>
+                )}
               </motion.div>
             );
           })}
         </div>
 
         <div className="absolute inset-x-4 bottom-2 flex justify-between text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-          <span>{sorted[0]?.weekStart.slice(0, 7)}</span>
-          <span>{sorted[sorted.length - 1]?.weekStart.slice(0, 7)}</span>
+          <span>{displayBars[0]?.weekStart.slice(0, 7)}</span>
+          <span>{displayBars[displayBars.length - 1]?.weekStart.slice(0, 7)}</span>
         </div>
       </div>
 
