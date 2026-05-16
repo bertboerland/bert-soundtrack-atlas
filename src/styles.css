@@ -198,3 +198,15 @@
 .animate-pulse-glow { animation: pulse-glow 4s ease-in-out infinite; }
 .animate-slow-drift { animation: slow-drift 18s ease-in-out infinite; }
 .animate-equalizer { animation: equalizer 0.9s ease-in-out infinite; transform-origin: bottom; }
+
+@keyframes waveform {
+  0%, 100% { transform: scaleY(1); }
+  50%      { transform: scaleY(0.35); }
+}
+.animate-waveform {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  animation: waveform 1.6s ease-in-out infinite;
+}

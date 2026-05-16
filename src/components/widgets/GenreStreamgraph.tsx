@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState, useEffect } from "react";
 import * as d3 from "d3";
 import type { GenreYearPoint } from "@/lib/spotify/types";
+import { colorForGenre } from "@/lib/spotify/genreColors";
 
 interface Props {
   data: GenreYearPoint[];
@@ -59,10 +60,10 @@ export function GenreStreamgraph({ data }: Props) {
       .y1((d) => y(d[1]))
       .curve(d3.curveBasis);
 
-    const paths = series.map((s, i) => ({
+    const paths = series.map((s) => ({
       genre: s.key,
       d: area(s) ?? "",
-      hue: (i * 360) / genres.length,
+      color: colorForGenre(s.key),
     }));
 
     return { paths, years, genres };
@@ -74,8 +75,8 @@ export function GenreStreamgraph({ data }: Props) {
         <defs>
           {paths.map((p) => (
             <linearGradient key={p.genre} id={`gs-${slug(p.genre)}`} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor={`hsl(${p.hue} 70% 60%)`} stopOpacity="0.95" />
-              <stop offset="100%" stopColor={`hsl(${p.hue} 70% 40%)`} stopOpacity="0.3" />
+              <stop offset="0%" stopColor={p.color} stopOpacity="0.95" />
+              <stop offset="100%" stopColor={p.color} stopOpacity="0.35" />
             </linearGradient>
           ))}
         </defs>
@@ -114,7 +115,7 @@ export function GenreStreamgraph({ data }: Props) {
           >
             <span
               className="h-2 w-2 rounded-full"
-              style={{ background: `hsl(${p.hue} 70% 55%)` }}
+              style={{ background: p.color }}
             />
             {p.genre}
           </button>

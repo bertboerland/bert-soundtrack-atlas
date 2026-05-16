@@ -91,7 +91,11 @@ function Dashboard() {
           subtitle="3D constellation of every track"
           delay={0.05}
         >
-          <MusicGalaxy3D nodes={data.galaxyNodes} />
+          <MusicGalaxy3D
+            nodes={data.galaxyNodes}
+            trackGenres={Object.fromEntries(data.topTracks.map((t) => [t.trackId, t.genre]))}
+            artistGenres={Object.fromEntries(data.topArtists.map((a) => [a.artist, a.topGenre]))}
+          />
         </WidgetCard>
 
         {/* Streamgraph */}
@@ -106,10 +110,10 @@ function Dashboard() {
         {/* Heatmap */}
         <WidgetCard
           title="Listening Heatmap"
-          subtitle="Hourly intensity across one year"
+          subtitle="Every day, every year — colored by the dominant genre of that year"
           delay={0.15}
         >
-          <ListeningHeatmap cells={data.heatmap} />
+          <ListeningHeatmap cells={data.heatmap} genreEvolution={data.genreEvolution} />
         </WidgetCard>
 
         {/* Obsessions */}

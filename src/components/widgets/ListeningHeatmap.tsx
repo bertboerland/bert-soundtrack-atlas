@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
-import type { HeatmapCell } from "@/lib/spotify/types";
+import type { HeatmapCell, GenreYearPoint } from "@/lib/spotify/types";
+import { colorForGenre } from "@/lib/spotify/genreColors";
 
 interface Props {
   cells: HeatmapCell[];
+  genreEvolution?: GenreYearPoint[];
 }
 
 /**
@@ -13,7 +15,7 @@ interface Props {
  *
  * Surfaces how continuous the listening habit has been over time.
  */
-export function ListeningHeatmap({ cells }: Props) {
+export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
   const [hover, setHover] = useState<{
     date: string;
     minutes: number;
@@ -91,6 +93,37 @@ export function ListeningHeatmap({ cells }: Props) {
 
   const coveragePct = totalDays ? Math.round((activeDays / totalDays) * 100) : 0;
 
+  // Map each year → dominant genre + color (from genreEvolution)
+  const yearGenre = useMemo(() => {
+    const m = new Map<number, { genre: string; color: string }>();
+    const byYear = new Map<number, Map<string, number>>();
+    for (const p of genreEvolution) {
+      if (!byYear.has(p.year)) byYear.set(p.year, new Map());
+      const g = byYear.get(p.year)!;
+      g.set(p.genre, (g.get(p.genre) ?? 0) + p.minutes);
+    }
+    for (const [yr, g] of byYear) {
+      const top = [...g.entries()].sort((a, b) => b[1] - a[1])[0];
+      const genre = top?.[0] ?? "Unknown";
+      m.set(yr, { genre, color: colorForGenre(genre) });
+    }
+    return m;
+  }, [genreEvolution]);
+
+  /** Convert a hex/hsl color + alpha into a usable rgba/hsla string. */
+  function withAlpha(color: string, alpha: number): string {
+    if (color.startsWith("#")) {
+      const r = parseInt(color.slice(1, 3), 16);
+      const g = parseInt(color.slice(3, 5), 16);
+      const b = parseInt(color.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    if (color.startsWith("hsl(")) {
+      return color.replace("hsl(", "hsla(").replace(")", ` / ${alpha})`);
+    }
+    return color;
+  }
+
   return (
     <div className="relative px-4 pb-6 pt-2">
       {/* Headline stats — the "I always listen" story */}
@@ -137,14 +170,15 @@ export function ListeningHeatmap({ cells }: Props) {
           {years.map((y, rowIdx) => {
             const row = byYear.get(y)!;
             const yTop = 24 + rowIdx * rowH;
+            const yc = yearGenre.get(y);
+            const baseColor = yc?.color ?? "#1DB954";
             return (
               <g key={y}>
                 <text
                   x={labelW - 6}
                   y={yTop + cellSize * 0.85}
                   textAnchor="end"
-                  className="fill-muted-foreground"
-                  style={{ fontSize: 9, fontFamily: "var(--font-mono)" }}
+                  style={{ fontSize: 9, fontFamily: "var(--font-mono)", fill: baseColor, opacity: 0.85 }}
                 >
                   {y}
                 </text>
@@ -154,7 +188,7 @@ export function ListeningHeatmap({ cells }: Props) {
                   const fill =
                     minutes === 0
                       ? "rgba(255,255,255,0.035)"
-                      : `rgba(29, 185, 84, ${0.22 + Math.sqrt(intensity) * 0.78})`;
+                      : withAlpha(baseColor, 0.22 + Math.sqrt(intensity) * 0.78);
                   // Reconstruct date for tooltip
                   const dt = new Date(Date.UTC(y, 0, 1) + di * 86400000);
                   if (dt.getUTCFullYear() !== y) return null;
@@ -187,25 +221,22 @@ export function ListeningHeatmap({ cells }: Props) {
         </svg>
       </div>
 
-      {/* Legend */}
-      <div className="mt-3 flex items-center gap-2 px-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-        <span>less</span>
-        {[0.05, 0.2, 0.4, 0.65, 0.95].map((i, idx) => (
-          <span
-            key={idx}
-            className="inline-block h-2.5 w-2.5 rounded-[2px]"
-            style={{
-              background:
-                i < 0.1
-                  ? "rgba(255,255,255,0.035)"
-                  : `rgba(29, 185, 84, ${0.22 + Math.sqrt(i) * 0.78})`,
-            }}
-          />
-        ))}
-        <span>more</span>
-        <span className="ml-auto">
-          {years[years.length - 1]} → {years[0]} · daily minutes
-        </span>
+      {/* Per-year genre legend — connects the heatmap to the streamgraph palette */}
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 px-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+        {[...yearGenre.entries()]
+          .sort((a, b) => b[0] - a[0])
+          .map(([yr, { genre, color }]) => (
+            <span key={yr} className="inline-flex items-center gap-1.5">
+              <span
+                className="inline-block h-2.5 w-2.5 rounded-[2px]"
+                style={{ background: color }}
+              />
+              <span className="font-mono" style={{ color }}>
+                {yr}
+              </span>
+              <span className="opacity-60">{genre}</span>
+            </span>
+          ))}
       </div>
 
       {hover && (

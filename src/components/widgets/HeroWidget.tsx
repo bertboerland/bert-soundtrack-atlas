@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Linkedin, Globe, Music2 } from "lucide-react";
 import type { ProcessedDataset } from "@/lib/spotify/types";
@@ -157,20 +158,59 @@ function ParticleField() {
 }
 
 function Equalizer() {
-  const bars = Array.from({ length: 80 });
+  // Audio-waveform–style visualization: symmetric bars mirrored around a
+  // center axis, with heights driven by a sum-of-sines envelope so the
+  // silhouette reads as a real .wav file rather than a chart equalizer.
+  const N = 160;
+  const bars = useMemo(() => {
+    return Array.from({ length: N }).map((_, i) => {
+      const t = i / N;
+      // Sum of sines + a pseudo-random micro-jitter for realism
+      const envelope =
+        0.55 +
+        0.35 * Math.sin(t * Math.PI * 3.1) +
+        0.18 * Math.sin(t * Math.PI * 11 + 1.3) +
+        0.08 * Math.sin(t * Math.PI * 27 + 0.7);
+      const jitter = (Math.sin(i * 12.9898) * 43758.5453) % 1;
+      const amp = Math.max(0.05, Math.min(1, Math.abs(envelope) + jitter * 0.08));
+      return {
+        amp,
+        delay: (i * 53) % 2200,
+        duration: 1400 + ((i * 91) % 1200),
+      };
+    });
+  }, []);
+
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0 flex h-32 items-end gap-[2px] px-2 opacity-40">
-      {bars.map((_, i) => (
-        <span
-          key={i}
-          className="flex-1 rounded-t-sm bg-gradient-to-t from-primary/80 to-cyan-glow/30 animate-equalizer"
-          style={{
-            animationDelay: `${(i * 90) % 1800}ms`,
-            animationDuration: `${800 + ((i * 37) % 900)}ms`,
-            height: `${20 + ((i * 13) % 80)}%`,
-          }}
-        />
-      ))}
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-36 opacity-60">
+      {/* Soft center-line glow */}
+      <div className="absolute inset-x-0 bottom-[calc(50%-1px)] h-px bg-primary/40 shadow-[0_0_12px_rgba(29,185,84,0.5)]" />
+      <div className="flex h-full items-center gap-[2px] px-2">
+        {bars.map((b: { amp: number; delay: number; duration: number }, i: number) => (
+          <span
+            key={i}
+            className="flex-1 animate-waveform"
+            style={
+              {
+                ["--amp" as string]: b.amp.toFixed(3),
+                animationDelay: `${b.delay}ms`,
+                animationDuration: `${b.duration}ms`,
+              } as React.CSSProperties
+            }
+          >
+            {/* upper half */}
+            <span
+              className="block w-full rounded-full bg-gradient-to-t from-primary/90 to-cyan-glow/70"
+              style={{ height: `calc(50% * var(--amp))`, marginTop: `calc(50% - 50% * var(--amp))` }}
+            />
+            {/* lower half (mirror) */}
+            <span
+              className="block w-full rounded-full bg-gradient-to-b from-primary/90 to-cyan-glow/30"
+              style={{ height: `calc(50% * var(--amp))` }}
+            />
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
