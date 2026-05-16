@@ -18,7 +18,7 @@ export function HeroWidget({ data, source }: HeroProps) {
       {/* Equalizer wave at bottom */}
       <Equalizer />
 
-      <div className="relative z-10 px-5 pt-12 pb-40 sm:px-14 sm:pt-20 sm:pb-56 lg:px-20 lg:pt-28 lg:pb-64">
+      <div className="relative z-10 px-5 pt-12 pb-20 sm:px-14 sm:pt-20 sm:pb-28 lg:px-20 lg:pt-28 lg:pb-32">
         <motion.span
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -33,10 +33,10 @@ export function HeroWidget({ data, source }: HeroProps) {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-6 font-display text-4xl font-semibold leading-[1] tracking-tight sm:text-7xl lg:text-[5.5rem]"
+          className="mt-6 font-display text-3xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl"
         >
-          The Soundtrack <br />
-          of <span className="gradient-text text-glow">Bert Boerland</span>
+          {data.meta.yearRange[1] - data.meta.yearRange[0] + 1} years of music listening<br />
+          on Spotify by <span className="gradient-text text-glow">Bert Boerland</span>
         </motion.h1>
 
         <motion.p
@@ -150,7 +150,7 @@ function fmt(n: number): string {
   return String(n);
 }
 
-/** Inline Drupal "droplet" icon, styled like lucide for consistency. */
+/** Inline Drupal droplet icon — official simplified mark. */
 function DrupalIcon({ className = "" }: { className?: string }) {
   return (
     <svg
@@ -159,7 +159,7 @@ function DrupalIcon({ className = "" }: { className?: string }) {
       className={className}
       aria-hidden="true"
     >
-      <path d="M15.78 6.22C14.27 4.71 12.84 3.28 12 1c-.84 2.28-2.27 3.71-3.78 5.22C6 8.45 3.5 10.94 3.5 14.66 3.5 19.27 7.13 23 12 23s8.5-3.73 8.5-8.34c0-3.72-2.5-6.21-4.72-8.44ZM7.6 18.5c-.95-.07-4.5-6.13.43-11l.04.05c-.07.1-3.5 5.16-.16 8.6 1.46 1.5 1.5 2.31-.31 2.35Zm4.4 2c-1.55 0-2.8-1.05-2.8-2.6 0-2.06 1.93-2.6 3.2-4.32.18-.24.37-.48.6-.7 0 0 1.8 2.45 2.6 4.3.79 1.86-.41 3.32-3.6 3.32Zm6.5-4.92c-.16-.2-.32-.32-.43-.13-2.04 3.52-4.66.92-5.78-.55-1.6-2.1-3.65-4.04-4.85-5.42-1.18-1.36-1.18-2.3-.66-3.18.92-1.55 3.5-2.07 5.05-3.78 0 .94 1.16 1.86 2.43 3.06s4.95 3.55 4.95 7.96c0 .87-.18 1.59-.34 2.04-.06.16-.18.17-.37 0Z" />
+      <path d="M15.78 6.22C14.27 4.71 12.84 3.28 12 1c-.84 2.28-2.27 3.71-3.78 5.22C6 8.45 3.5 10.94 3.5 14.66 3.5 19.27 7.13 23 12 23s8.5-3.73 8.5-8.34c0-3.72-2.5-6.21-4.72-8.44Z" />
     </svg>
   );
 }

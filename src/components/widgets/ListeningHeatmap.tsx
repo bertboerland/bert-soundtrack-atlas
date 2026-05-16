@@ -281,24 +281,6 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
         </svg>
       </div>
 
-      {/* Per-year genre legend */}
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 px-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-        {[...yearGenre.entries()]
-          .sort((a, b) => a[0] - b[0])
-          .map(([yr, { genre, color }]) => (
-            <span key={yr} className="inline-flex items-center gap-1.5">
-              <span
-                className="inline-block h-2.5 w-2.5 rounded-[2px]"
-                style={{ background: color }}
-              />
-              <span className="font-mono" style={{ color }}>
-                {yr}
-              </span>
-              <span className="opacity-60">{genre}</span>
-            </span>
-          ))}
-      </div>
-
       {hover && (
         <div
           className="pointer-events-none absolute rounded-lg border border-white/10 bg-background/95 px-3 py-2 text-xs backdrop-blur"
