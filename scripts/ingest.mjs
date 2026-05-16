@@ -414,6 +414,7 @@ async function main() {
     topTracks: tracks.slice(0, 200),
     topArtists: artists.slice(0, 100),
     genreEvolution,
+    clientTimeline,
     heatmap: heatmapArr,
     obsessions: findObsessions(records),
     survivors: findSurvivors(tracks),
