@@ -60,10 +60,10 @@ export function GenreStreamgraph({ data }: Props) {
       .y1((d) => y(d[1]))
       .curve(d3.curveBasis);
 
-    const paths = series.map((s, i) => ({
+    const paths = series.map((s) => ({
       genre: s.key,
       d: area(s) ?? "",
-      hue: (i * 360) / genres.length,
+      color: colorForGenre(s.key),
     }));
 
     return { paths, years, genres };
