@@ -171,7 +171,7 @@ export function MusicGalaxy3D({ nodes, trackGenres = {}, artistGenres = {} }: Ga
 
       {/* Top hint */}
       <div className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 rounded-full border border-white/10 bg-background/70 px-4 py-1.5 text-xs text-muted-foreground backdrop-blur">
-        Drag to orbit · scroll to zoom · lines connect tracks by the same artist
+        Drag · scroll to zoom · hover a star to hear a 30s preview
       </div>
 
       {/* Genre legend */}
