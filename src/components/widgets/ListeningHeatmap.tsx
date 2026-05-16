@@ -243,8 +243,12 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
 
           {/* Week cells */}
           {weeks.map((w, i) => {
-            const yc = yearGenre.get(w.year);
-            const base = yc?.color ?? "#1DB954";
+            const yearWeekIdx = (() => {
+              let idx = 0;
+              for (let k = i - 1; k >= 0 && weeks[k].year === w.year; k--) idx++;
+              return idx;
+            })();
+            const base = pickGenreForWeek(w.year, yearWeekIdx).color;
             const intensity = w.minutes / maxWeekMinutes;
             const fill =
               w.minutes === 0
