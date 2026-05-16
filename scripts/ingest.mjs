@@ -385,8 +385,17 @@ async function main() {
   const records = normalize(raw);
   console.log(`  after normalization: ${records.length.toLocaleString()}\n`);
 
-  const { tracks, artists, heatmapArr, genreEvolution } = aggregate(records);
+  const { tracks, artists, heatmapArr, artistMap } = aggregate(records);
   await enrichGenres(artists);
+
+  // Backfill track.genre from the (possibly enriched) artist.topGenre
+  for (const t of tracks) {
+    const a = artistMap.get(t.artist);
+    if (a?.topGenre) t.genre = a.topGenre;
+  }
+
+  const genreEvolution = buildGenreEvolution(records, artistMap);
+  const clientTimeline = buildClientTimeline(records);
 
   const meta = {
     generatedAt: new Date().toISOString(),
