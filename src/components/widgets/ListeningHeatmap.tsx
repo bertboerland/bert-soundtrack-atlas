@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { HeatmapCell, GenreYearPoint } from "@/lib/spotify/types";
 import { colorForGenre } from "@/lib/spotify/genreColors";
 
@@ -174,13 +174,25 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
     return color;
   }
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(800);
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const e of entries) setContainerWidth(e.contentRect.width);
+    });
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
   const gap = 1;
   const rowH = 56;
   const padY = 28;
   const padBottom = 40;
-  const viewWidth = Math.max(600, weeks.length * 7);
-  const colW = weeks.length > 0 ? (viewWidth - 20) / weeks.length - gap : 6;
-  const width = viewWidth;
+  const colW = weeks.length > 0
+    ? Math.max(2, (containerWidth - 20) / weeks.length - gap)
+    : 6;
+  const width = containerWidth;
   const height = rowH + padY + padBottom;
 
   const coveragePct = totalDays ? Math.round((activeDays / totalDays) * 100) : 0;
@@ -211,8 +223,9 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
         </div>
       </div>
 
-      <div className="w-full">
-        <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} preserveAspectRatio="none" className="block">
+      <div ref={containerRef} className="w-full">
+        <svg width={width} height={height} className="block">
+
 
           {/* Year labels along the top */}
           {yearMarkers.map(({ year, index }) => {
