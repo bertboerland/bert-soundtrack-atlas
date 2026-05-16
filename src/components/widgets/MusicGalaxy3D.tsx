@@ -324,7 +324,7 @@ function Star({
         document.body.style.cursor = "auto";
       }}
     >
-      <sphereGeometry args={[node.size, 12, 12]} />
+      <sphereGeometry args={[node.radius, 16, 16]} />
       <meshStandardMaterial
         color={color}
         emissive={color}
