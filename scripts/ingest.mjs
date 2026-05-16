@@ -71,7 +71,6 @@ function aggregate(records) {
   const trackMap = new Map();
   const artistMap = new Map();
   const heatmap = new Map();
-  const genreYear = new Map();
 
   for (const r of records) {
     const trackId = r.spotify_track_uri;
