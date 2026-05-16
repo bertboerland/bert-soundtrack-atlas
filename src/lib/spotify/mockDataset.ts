@@ -205,7 +205,7 @@ function makeObsessions(tracks: TrackAggregate[]): Obsession[] {
     trackId: t.trackId,
     name: t.name,
     artist: t.artist,
-    weekStart: `${2014 + (i % 12)}-${String(1 + (i * 3) % 12).padStart(2, "0")}-07`,
+    weekStart: `${2014 + (i % 13)}-${String(1 + (i * 3) % 12).padStart(2, "0")}-07`,
     plays: 30 + Math.floor(rand() * 80),
   }));
 }
