@@ -223,8 +223,9 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
         </div>
       </div>
 
-      <div className="w-full">
-        <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} preserveAspectRatio="none" className="block">
+      <div ref={containerRef} className="w-full">
+        <svg width={width} height={height} className="block">
+
 
           {/* Year labels along the top */}
           {yearMarkers.map(({ year, index }) => {
