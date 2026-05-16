@@ -8,6 +8,8 @@ import { GenreStreamgraph } from "@/components/widgets/GenreStreamgraph";
 import { ListeningHeatmap } from "@/components/widgets/ListeningHeatmap";
 import { InsightsEngine } from "@/components/widgets/InsightsEngine";
 import { NowPlayingMemory } from "@/components/widgets/NowPlayingMemory";
+import { ObsessionTracker } from "@/components/widgets/ObsessionTracker";
+import { ClientTimeline } from "@/components/widgets/ClientTimeline";
 import { WidgetCard } from "@/components/widgets/WidgetCard";
 
 export const Route = createFileRoute("/")({
