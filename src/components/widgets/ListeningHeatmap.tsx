@@ -211,8 +211,9 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <svg width={width} height={height} className="block">
+      <div className="w-full">
+        <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} preserveAspectRatio="none" className="block">
+
           {/* Year labels along the top */}
           {yearMarkers.map(({ year, index }) => {
             const x = index * (colW + gap);
