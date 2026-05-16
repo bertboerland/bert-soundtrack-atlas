@@ -1,9 +1,32 @@
-import { Suspense, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import type { GalaxyNode } from "@/lib/spotify/types";
 import { colorForGenre } from "@/lib/spotify/genreColors";
+
+/**
+ * iTunes Search API → 30s preview mp3. No auth, CORS-friendly.
+ * Returns null if nothing matches or the request fails.
+ */
+const PREVIEW_CACHE = new Map<string, string | null>();
+async function fetchPreviewUrl(artist: string, track: string): Promise<string | null> {
+  const key = `${artist}::${track}`;
+  if (PREVIEW_CACHE.has(key)) return PREVIEW_CACHE.get(key)!;
+  try {
+    const q = encodeURIComponent(`${artist} ${track}`);
+    const res = await fetch(
+      `https://itunes.apple.com/search?term=${q}&media=music&limit=1`,
+    );
+    const json = (await res.json()) as { results?: Array<{ previewUrl?: string }> };
+    const url = json.results?.[0]?.previewUrl ?? null;
+    PREVIEW_CACHE.set(key, url);
+    return url;
+  } catch {
+    PREVIEW_CACHE.set(key, null);
+    return null;
+  }
+}
 
 interface GalaxyProps {
   nodes: GalaxyNode[];
@@ -20,6 +43,52 @@ interface EnrichedNode extends GalaxyNode {
 
 export function MusicGalaxy3D({ nodes, trackGenres = {}, artistGenres = {} }: GalaxyProps) {
   const [hovered, setHovered] = useState<EnrichedNode | null>(null);
+  const [previewState, setPreviewState] = useState<"idle" | "loading" | "playing" | "unavailable">("idle");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Lazy init the shared <audio> element once.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const el = new Audio();
+    el.volume = 0.5;
+    el.preload = "none";
+    audioRef.current = el;
+    return () => {
+      el.pause();
+      el.src = "";
+    };
+  }, []);
+
+  // On hover change: cancel any current playback, then fetch + play the new preview.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.pause();
+    audio.currentTime = 0;
+    if (!hovered) {
+      setPreviewState("idle");
+      return;
+    }
+    let cancelled = false;
+    setPreviewState("loading");
+    const target = hovered;
+    fetchPreviewUrl(target.artist, target.name).then((url) => {
+      if (cancelled || audioRef.current !== audio) return;
+      if (!url) {
+        setPreviewState("unavailable");
+        return;
+      }
+      audio.src = url;
+      audio.play().then(() => {
+        if (!cancelled) setPreviewState("playing");
+      }).catch(() => {
+        if (!cancelled) setPreviewState("unavailable");
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [hovered]);
 
   const enriched: EnrichedNode[] = useMemo(
     () =>
@@ -102,7 +171,7 @@ export function MusicGalaxy3D({ nodes, trackGenres = {}, artistGenres = {} }: Ga
 
       {/* Top hint */}
       <div className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 rounded-full border border-white/10 bg-background/70 px-4 py-1.5 text-xs text-muted-foreground backdrop-blur">
-        Drag to orbit · scroll to zoom · lines connect tracks by the same artist
+        Drag · scroll to zoom · hover a star to hear a 30s preview
       </div>
 
       {/* Genre legend */}
@@ -135,6 +204,29 @@ export function MusicGalaxy3D({ nodes, trackGenres = {}, artistGenres = {} }: Ga
           </div>
           <div className="mt-0.5 font-display text-sm font-medium text-foreground">
             {hovered.name}
+          </div>
+          <div className="mt-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            {previewState === "loading" && (
+              <>
+                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+                loading preview…
+              </>
+            )}
+            {previewState === "playing" && (
+              <>
+                <span className="inline-flex items-end gap-[2px]">
+                  {[0, 1, 2].map((i) => (
+                    <span
+                      key={i}
+                      className="block w-[2px] animate-equalizer bg-primary"
+                      style={{ height: 8, animationDelay: `${i * 120}ms` }}
+                    />
+                  ))}
+                </span>
+                <span className="text-primary">playing 30s preview</span>
+              </>
+            )}
+            {previewState === "unavailable" && <span>no preview available</span>}
           </div>
         </div>
       )}
