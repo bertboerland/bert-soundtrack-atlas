@@ -185,14 +185,16 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
     return () => ro.disconnect();
   }, []);
 
-  const gap = 1;
   const rowH = 56;
   const padY = 28;
   const padBottom = 40;
-  const colW = weeks.length > 0
-    ? Math.max(1, containerWidth / weeks.length - gap)
-    : 6;
   const width = containerWidth;
+  const gap = weeks.length > 0
+    ? Math.min(1, Math.max(0.15, (width / weeks.length) * 0.18))
+    : 1;
+  const colW = weeks.length > 0
+    ? Math.max(0, (width - gap * (weeks.length - 1)) / weeks.length)
+    : 6;
   const height = rowH + padY + padBottom;
 
   const coveragePct = totalDays ? Math.round((activeDays / totalDays) * 100) : 0;
