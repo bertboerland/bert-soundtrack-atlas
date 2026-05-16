@@ -170,14 +170,15 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
           {years.map((y, rowIdx) => {
             const row = byYear.get(y)!;
             const yTop = 24 + rowIdx * rowH;
+            const yc = yearGenre.get(y);
+            const baseColor = yc?.color ?? "#1DB954";
             return (
               <g key={y}>
                 <text
                   x={labelW - 6}
                   y={yTop + cellSize * 0.85}
                   textAnchor="end"
-                  className="fill-muted-foreground"
-                  style={{ fontSize: 9, fontFamily: "var(--font-mono)" }}
+                  style={{ fontSize: 9, fontFamily: "var(--font-mono)", fill: baseColor, opacity: 0.85 }}
                 >
                   {y}
                 </text>
@@ -187,7 +188,7 @@ export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
                   const fill =
                     minutes === 0
                       ? "rgba(255,255,255,0.035)"
-                      : `rgba(29, 185, 84, ${0.22 + Math.sqrt(intensity) * 0.78})`;
+                      : withAlpha(baseColor, 0.22 + Math.sqrt(intensity) * 0.78);
                   // Reconstruct date for tooltip
                   const dt = new Date(Date.UTC(y, 0, 1) + di * 86400000);
                   if (dt.getUTCFullYear() !== y) return null;
