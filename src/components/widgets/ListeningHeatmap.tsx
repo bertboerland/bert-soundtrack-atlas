@@ -15,7 +15,7 @@ interface Props {
  *
  * Surfaces how continuous the listening habit has been over time.
  */
-export function ListeningHeatmap({ cells }: Props) {
+export function ListeningHeatmap({ cells, genreEvolution = [] }: Props) {
   const [hover, setHover] = useState<{
     date: string;
     minutes: number;
