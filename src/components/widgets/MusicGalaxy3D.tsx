@@ -54,7 +54,7 @@ export function MusicGalaxy3D({
         maxPlays > 0
           ? Math.log10(1 + plays) / Math.log10(1 + maxPlays)
           : (n.size - 0.05) / 0.4; // fallback using ingest size
-      const radius = 0.18 + Math.pow(Math.max(0, popWeight), 0.85) * 0.95;
+      const radius = 0.06 + Math.pow(Math.max(0, popWeight), 0.85) * 0.32;
       return { ...n, genre, color: colorForGenre(genre), radius };
     });
   }, [nodes, trackGenres, artistGenres, trackPlays]);
