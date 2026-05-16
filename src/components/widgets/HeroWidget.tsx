@@ -186,7 +186,7 @@ function Equalizer() {
       {/* Soft center-line glow */}
       <div className="absolute inset-x-0 bottom-[calc(50%-1px)] h-px bg-primary/40 shadow-[0_0_12px_rgba(29,185,84,0.5)]" />
       <div className="flex h-full items-center gap-[2px] px-2">
-        {bars.map((b, i) => (
+        {bars.map((b: { amp: number; delay: number; duration: number }, i: number) => (
           <span
             key={i}
             className="flex-1 animate-waveform"
