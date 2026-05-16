@@ -69,8 +69,23 @@ export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
   }
 
   const top = data.slice(0, 24);
-  const maxPlays = Math.max(...top.map((o) => o.plays));
+  const maxPlays = Math.max(...top.map((o) => o.plays), 1);
   const sorted = [...top].sort((a, b) => a.weekStart.localeCompare(b.weekStart));
+
+  // Stretch timeline with invisible spacers so the chart always ends in 2026
+  const lastYear = parseInt(sorted[sorted.length - 1]?.weekStart.slice(0, 4) || "2026", 10);
+  const ghostSpacers: Obsession[] = [];
+  for (let y = lastYear + 1; y <= 2026; y++) {
+    ghostSpacers.push({
+      trackId: `spacer-${y}`,
+      name: "",
+      artist: "",
+      weekStart: `${y}-12-31`,
+      plays: 0,
+    });
+  }
+  const displayBars = [...sorted, ...ghostSpacers];
+
   const genreById = new Map(topTracks.map((t) => [t.trackId, t.genre]));
   const colorFor = (trackId: string) => colorForGenre(genreById.get(trackId));
 
