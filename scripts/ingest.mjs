@@ -152,7 +152,11 @@ function aggregate(records) {
     minutes: Math.round(c.minutes),
   }));
 
-  // Genre evolution (uses enriched genre on artist; defaults Unknown)
+  return { tracks, artists, heatmapArr, artistMap, trackMap };
+}
+
+function buildGenreEvolution(records, artistMap) {
+  const genreYear = new Map();
   for (const r of records) {
     const year = new Date(r.ts).getUTCFullYear();
     const artist = artistMap.get(r.master_metadata_album_artist_name);
@@ -162,12 +166,10 @@ function aggregate(records) {
     cur.minutes += r.ms_played / 60000;
     genreYear.set(k, cur);
   }
-  const genreEvolution = [...genreYear.values()].map((g) => ({
+  return [...genreYear.values()].map((g) => ({
     ...g,
     minutes: Math.round(g.minutes),
   }));
-
-  return { tracks, artists, heatmapArr, genreEvolution };
 }
 
 function findObsessions(records) {
