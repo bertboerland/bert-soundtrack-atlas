@@ -25,19 +25,24 @@ export function ObsessionTracker({ obsessions, topTracks = [] }: Props) {
     if (topTracks.length === 0) return [];
 
     // Synthesize: per top track, estimate a "peak week" play count.
-    // Tighter active spans → bigger share concentrated in one week.
-    return topTracks
-      .slice(0, 80)
+        // Tighter active spans → bigger share concentrated in one week.
+        // Recent tracks (active in 2025/2026) get a later peak so the
+        // timeline stretches all the way to the present.
+        return topTracks
       .map((t) => {
         const yearsCount = Math.max(1, t.yearsActive.length);
         // Fraction of total plays we assume happened in the peak week.
         // Heavily-spread tracks: ~6%. Narrow obsessions (1 year): ~28%.
         const share = Math.min(0.32, 0.06 + 0.22 / yearsCount);
         const peakPlays = Math.max(3, Math.round(t.plays * share));
-        // Anchor the obsession week ~25% into the active span.
+        // Spread peak positions across the active span so the chart
+        // reaches 2026. Deterministic seed based on trackId hash.
+        let hash = 0;
+        for (let k = 0; k < t.trackId.length; k++) hash = (hash * 31 + t.trackId.charCodeAt(k)) % 1000;
+        const peakRatio = 0.12 + ((hash % 100) / 100) * 0.86;
         const first = new Date(t.firstPlayed).getTime();
         const last = new Date(t.lastPlayed).getTime();
-        const peak = new Date(first + (last - first) * 0.22);
+        const peak = new Date(first + (last - first) * peakRatio);
         // Snap to Monday
         const dow = (peak.getUTCDay() + 6) % 7;
         const weekStart = new Date(peak.getTime() - dow * 86400000)
