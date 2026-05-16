@@ -122,7 +122,7 @@ function Dashboard() {
           subtitle="Tracks that took over a single week"
           delay={0.18}
         >
-          <ObsessionTracker obsessions={data.obsessions} />
+          <ObsessionTracker obsessions={data.obsessions} topTracks={data.topTracks} />
         </WidgetCard>
 
         {/* Clients over time */}
