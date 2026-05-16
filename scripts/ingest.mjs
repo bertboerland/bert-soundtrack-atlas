@@ -317,56 +317,64 @@ function buildClientTimeline(records) {
   });
 }
 
+// Map noisy Last.fm tags onto broader genre umbrellas so the streamgraph stays readable.
+const GENRE_UMBRELLAS = [
+  [/hip.?hop|rap|trap|grime/i, "Hip-Hop"],
+  [/r&?b|soul|funk|motown/i, "Soul & R&B"],
+  [/jazz|bebop|swing|bossa/i, "Jazz"],
+  [/class(ical|ic)|orchestr|baroque|opera|symphon/i, "Classical"],
+  [/metal|hardcore|grindcore|doom/i, "Metal"],
+  [/punk|hardcore/i, "Punk"],
+  [/folk|singer.?songwriter|americana|country|bluegrass/i, "Folk & Country"],
+  [/electro|house|techno|trance|dnb|drum.?and.?bass|dubstep|edm|idm|ambient|downtempo|chillout|trip.?hop/i, "Electronic"],
+  [/indie|alt(ernative)?/i, "Indie / Alternative"],
+  [/rock|garage|grunge|britpop/i, "Rock"],
+  [/pop/i, "Pop"],
+  [/reggae|ska|dub/i, "Reggae"],
+  [/world|latin|afro|reggaeton|salsa|cumbia/i, "World"],
+  [/blues/i, "Blues"],
+  [/sound.?track|score|film/i, "Soundtrack"],
+];
+
+function umbrellaFor(tag) {
+  for (const [re, label] of GENRE_UMBRELLAS) if (re.test(tag)) return label;
+  return null;
+}
+
 async function enrichGenres(artists) {
-  const id = process.env.SPOTIFY_CLIENT_ID;
-  const secret = process.env.SPOTIFY_CLIENT_SECRET;
-  if (!id || !secret) {
-    console.log("  ⚠ Spotify API credentials not set — skipping genre enrichment.");
+  const key = process.env.LASTFM_API_KEY;
+  if (!key) {
+    console.log("  ⚠ LASTFM_API_KEY not set — skipping genre enrichment.");
     return;
   }
-  console.log("  ↻ enriching genres via Spotify Web API…");
+  console.log("  ↻ enriching genres via Last.fm API…");
 
-  // 1. Get app token (Client Credentials)
-  const tokenRes = await fetch("https://accounts.spotify.com/api/token", {
-    method: "POST",
-    headers: {
-      Authorization: "Basic " + Buffer.from(`${id}:${secret}`).toString("base64"),
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: "grant_type=client_credentials",
-  });
-  if (!tokenRes.ok) {
-    console.log("  ✗ token request failed — skipping enrichment");
-    return;
-  }
-  const { access_token } = await tokenRes.json();
-
-  // 2. Enrich the top N artists (most-played first). The galaxy + streamgraph
-  //    only need the heavy hitters, and we want to stay well within rate limits.
   const TOP_N = Math.min(artists.length, 600);
   let enriched = 0;
   for (let i = 0; i < TOP_N; i++) {
     const a = artists[i];
     try {
-      const q = encodeURIComponent(`artist:"${a.artist.replace(/"/g, "")}"`);
-      const sr = await fetch(
-        `https://api.spotify.com/v1/search?type=artist&limit=1&q=${q}`,
-        { headers: { Authorization: `Bearer ${access_token}` } },
-      );
-      if (sr.status === 429) {
-        const wait = Number(sr.headers.get("retry-after") ?? 2);
-        await new Promise((r) => setTimeout(r, (wait + 1) * 1000));
-        i--;
-        continue;
+      const url =
+        `https://ws.audioscrobbler.com/2.0/?method=artist.getinfo` +
+        `&artist=${encodeURIComponent(a.artist)}` +
+        `&api_key=${key}&format=json&autocorrect=1`;
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      const tags = data?.artist?.tags?.tag ?? [];
+      if (tags.length === 0) continue;
+      // Prefer the highest-ranked tag that maps to an umbrella; else use the
+      // top tag verbatim (title-cased).
+      let chosen = null;
+      for (const t of tags) {
+        const u = umbrellaFor(t.name);
+        if (u) { chosen = u; break; }
       }
-      if (!sr.ok) continue;
-      const data = await sr.json();
-      const hit = data.artists?.items?.[0];
-      if (hit && hit.genres && hit.genres.length > 0) {
-        // Pick the most "umbrella" genre — shortest tends to be broadest.
-        a.topGenre = hit.genres.sort((x, y) => x.length - y.length)[0];
-        enriched++;
+      if (!chosen) {
+        chosen = tags[0].name.replace(/\b\w/g, (c) => c.toUpperCase());
       }
+      a.topGenre = chosen;
+      enriched++;
     } catch {
       /* skip */
     }
