@@ -71,7 +71,6 @@ function aggregate(records) {
   const trackMap = new Map();
   const artistMap = new Map();
   const heatmap = new Map();
-  const genreYear = new Map();
 
   for (const r of records) {
     const trackId = r.spotify_track_uri;
@@ -152,7 +151,11 @@ function aggregate(records) {
     minutes: Math.round(c.minutes),
   }));
 
-  // Genre evolution (uses enriched genre on artist; defaults Unknown)
+  return { tracks, artists, heatmapArr, artistMap, trackMap };
+}
+
+function buildGenreEvolution(records, artistMap) {
+  const genreYear = new Map();
   for (const r of records) {
     const year = new Date(r.ts).getUTCFullYear();
     const artist = artistMap.get(r.master_metadata_album_artist_name);
@@ -162,12 +165,10 @@ function aggregate(records) {
     cur.minutes += r.ms_played / 60000;
     genreYear.set(k, cur);
   }
-  const genreEvolution = [...genreYear.values()].map((g) => ({
+  return [...genreYear.values()].map((g) => ({
     ...g,
     minutes: Math.round(g.minutes),
   }));
-
-  return { tracks, artists, heatmapArr, genreEvolution };
 }
 
 function findObsessions(records) {
@@ -288,6 +289,34 @@ function buildGalaxy(tracks) {
   });
 }
 
+function classifyPlatform(p) {
+  if (!p) return "Unknown";
+  const s = String(p).toLowerCase();
+  if (s.includes("ios") || s.includes("iphone") || s.includes("ipad")) return "iOS";
+  if (s.includes("os x") || s.includes("osx") || s.includes("macos")) return "macOS";
+  if (s.includes("cast") || s.includes("chromecast") || s.includes("sonos")) return "Cast / Speaker";
+  if (s.includes("android")) return "Android";
+  if (s.includes("windows") || s.includes("win32")) return "Windows";
+  if (s.includes("linux")) return "Linux";
+  if (s.includes("web") || s.includes("webplayer") || s.includes("chrome")) return "Web";
+  if (s.includes("partner")) return "Cast / Speaker";
+  return "Other";
+}
+
+function buildClientTimeline(records) {
+  const map = new Map(); // key: YYYY-MM|platform → minutes
+  for (const r of records) {
+    const month = r.ts.slice(0, 7);
+    const platform = classifyPlatform(r.platform);
+    const key = `${month}|${platform}`;
+    map.set(key, (map.get(key) ?? 0) + r.ms_played / 60000);
+  }
+  return [...map.entries()].map(([k, minutes]) => {
+    const [month, platform] = k.split("|");
+    return { month, platform, minutes: Math.round(minutes) };
+  });
+}
+
 async function enrichGenres(artists) {
   const id = process.env.SPOTIFY_CLIENT_ID;
   const secret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -296,8 +325,56 @@ async function enrichGenres(artists) {
     return;
   }
   console.log("  ↻ enriching genres via Spotify Web API…");
-  // (Implementation left as TODO — requires search-by-name and rate limiting.
-  //  For v1 we just leave artist.topGenre = "Unknown" so the pipeline always works.)
+
+  // 1. Get app token (Client Credentials)
+  const tokenRes = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      Authorization: "Basic " + Buffer.from(`${id}:${secret}`).toString("base64"),
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "grant_type=client_credentials",
+  });
+  if (!tokenRes.ok) {
+    console.log("  ✗ token request failed — skipping enrichment");
+    return;
+  }
+  const { access_token } = await tokenRes.json();
+
+  // 2. Enrich the top N artists (most-played first). The galaxy + streamgraph
+  //    only need the heavy hitters, and we want to stay well within rate limits.
+  const TOP_N = Math.min(artists.length, 600);
+  let enriched = 0;
+  for (let i = 0; i < TOP_N; i++) {
+    const a = artists[i];
+    try {
+      const q = encodeURIComponent(`artist:"${a.artist.replace(/"/g, "")}"`);
+      const sr = await fetch(
+        `https://api.spotify.com/v1/search?type=artist&limit=1&q=${q}`,
+        { headers: { Authorization: `Bearer ${access_token}` } },
+      );
+      if (sr.status === 429) {
+        const wait = Number(sr.headers.get("retry-after") ?? 2);
+        await new Promise((r) => setTimeout(r, (wait + 1) * 1000));
+        i--;
+        continue;
+      }
+      if (!sr.ok) continue;
+      const data = await sr.json();
+      const hit = data.artists?.items?.[0];
+      if (hit && hit.genres && hit.genres.length > 0) {
+        // Pick the most "umbrella" genre — shortest tends to be broadest.
+        a.topGenre = hit.genres.sort((x, y) => x.length - y.length)[0];
+        enriched++;
+      }
+    } catch {
+      /* skip */
+    }
+    if (i % 50 === 0 && i > 0) {
+      console.log(`    · ${i}/${TOP_N} artists processed (${enriched} enriched)`);
+    }
+  }
+  console.log(`  ✓ enriched ${enriched}/${TOP_N} artists with genre data`);
 }
 
 async function main() {
@@ -308,8 +385,17 @@ async function main() {
   const records = normalize(raw);
   console.log(`  after normalization: ${records.length.toLocaleString()}\n`);
 
-  const { tracks, artists, heatmapArr, genreEvolution } = aggregate(records);
+  const { tracks, artists, heatmapArr, artistMap } = aggregate(records);
   await enrichGenres(artists);
+
+  // Backfill track.genre from the (possibly enriched) artist.topGenre
+  for (const t of tracks) {
+    const a = artistMap.get(t.artist);
+    if (a?.topGenre) t.genre = a.topGenre;
+  }
+
+  const genreEvolution = buildGenreEvolution(records, artistMap);
+  const clientTimeline = buildClientTimeline(records);
 
   const meta = {
     generatedAt: new Date().toISOString(),
@@ -328,6 +414,7 @@ async function main() {
     topTracks: tracks.slice(0, 200),
     topArtists: artists.slice(0, 100),
     genreEvolution,
+    clientTimeline,
     heatmap: heatmapArr,
     obsessions: findObsessions(records),
     survivors: findSurvivors(tracks),

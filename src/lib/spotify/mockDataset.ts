@@ -341,6 +341,7 @@ export function buildMockDataset(): ProcessedDataset {
     topTracks: topTracks.slice(0, 50),
     topArtists: topArtists.slice(0, 30),
     genreEvolution,
+    clientTimeline: [],
     heatmap,
     obsessions,
     survivors,

@@ -71,8 +71,8 @@ export function HeroWidget({ data, source }: HeroProps) {
           <div>
             <p className="font-display text-base font-medium text-foreground">Bert Boerland</p>
             <p className="mt-1 max-w-md text-sm text-muted-foreground">
-              Open source advocate · Drupal community organizer · Kubernetes &amp; Linux
-              specialist · focused on digital sovereignty &amp; open ecosystems.
+              Open source advocate · Drupal expert · Keynote speaker · focused on
+              digital sovereignty &amp; open ecosystems.
             </p>
           </div>
           <div className="flex gap-3">
