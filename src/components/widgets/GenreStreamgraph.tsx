@@ -115,7 +115,7 @@ export function GenreStreamgraph({ data }: Props) {
           >
             <span
               className="h-2 w-2 rounded-full"
-              style={{ background: `hsl(${p.hue} 70% 55%)` }}
+              style={{ background: p.color }}
             />
             {p.genre}
           </button>
