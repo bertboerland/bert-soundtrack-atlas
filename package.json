@@ -7,7 +7,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "build:static": "vite build && node scripts/make-static-html.mjs",
+    "build:static": "STATIC_SPA=1 vite build && node scripts/make-static-html.mjs",
     "preview": "vite preview",
     "ingest": "node scripts/ingest.mjs",
     "lint": "eslint .",
