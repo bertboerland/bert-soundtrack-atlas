@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Linkedin, Globe, Music2 } from "lucide-react";
 import type { ProcessedDataset } from "@/lib/spotify/types";
